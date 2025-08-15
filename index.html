@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Client List Reminders — User</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #008CBA;
+      --primary-contrast: #ffffff;
+      --accent: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: #e5e7eb;
+      --shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+      --radius: 14px;
+      --pad: 14px;
+    }
+    [data-theme="dark"] {
+      --bg: #0b1220;
+      --card: #111a2c;
+      --text: #e5e7eb;
+      --muted: #9aa7bd;
+      --primary: #3b82f6;
+      --primary-contrast: #0b1220;
+      --accent: #22c55e;
+      --warn: #fbbf24;
+      --danger: #ef4444;
+      --border: #1f2a44;
+      --shadow: 0 10px 30px rgba(0,0,0,.5);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; padding: 16px;
+      background: var(--bg); color: var(--text);
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;
+      line-height: 1.45;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    h1,h2,h3 { margin: 0 0 10px; }
+    .muted { color: var(--muted); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: calc(var(--pad) * 1.2);
+    }
+    .row { display: grid; gap: 10px; }
+    .topbar {
+      display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
+      margin-bottom: 14px;
+    }
+    .brand { font-weight: 800; letter-spacing:.3px; }
+    .btn, button {
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+      background: var(--card); color: var(--text); cursor:pointer;
+      transition: transform .06s ease, background .2s ease, border-color .2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background:var(--primary); color:var(--primary-contrast); border-color:transparent; }
+    .btn.success { background:var(--accent); color:#fff; border-color:transparent; }
+    .btn.danger { background:var(--danger); color:#fff; border-color:transparent; }
+    .btn.ghost { background: transparent; }
+    input, select, textarea {
+      width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+      background: var(--card); color: var(--text); outline:none;
+    }
+    textarea { min-height: 70px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+    .menu-wrap { position:relative; }
+    .menu {
+      position:absolute; top: calc(100% + 6px); right:0; min-width:260px; z-index:10;
+      background: var(--card); border:1px solid var(--border); border-radius:12px; box-shadow: var(--shadow);
+      padding:8px; display:none;
+    }
+    .menu.open { display:block; }
+    .menu .item { padding:10px; border-radius:10px; cursor:pointer; }
+    .menu .item:hover { background: rgba(100,116,139,.16); }
+    .hide { display:none !important; }
+    .section-title { display:flex; justify-content:space-between; align-items:center; margin:14px 0 8px; font-weight:700; }
+    .list { display:grid; gap:8px; }
+    .client {
+      display:grid; grid-template-columns: 1fr auto; gap:10px; align-items:center;
+      border:1px solid var(--border); border-left:6px solid var(--primary);
+      border-radius:12px; padding:12px; background:var(--card);
+    }
+    .client.overdue { border-left-color: var(--danger); background: rgba(239,68,68,.08); }
+    .client.today { border-left-color: var(--warn); background: rgba(245,158,11,.10); }
+    .client.paid { border-left-color: var(--accent); background: rgba(34,197,94,.10); }
+    .info { display:grid; gap:6px; }
+    @media (min-width:900px){ .info{ grid-template-columns: 1.2fr 1fr 1fr 1fr; } }
+    details summary { cursor:pointer; user-select:none; }
+    .label { font-size:.78rem; color: var(--muted); }
+    .value { font-weight:600; }
+    .dialog-backdrop {
+      position: fixed; inset:0; background: rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; padding:16px;
+    }
+    .dialog-backdrop.open { display:flex; }
+    .dialog { max-width:520px; width:100%; }
+    .dialog .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+	/* For devices smaller than 600px */
+@media (max-width: 600px) {
+  .client {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 15px;
+  }
+}
+
+/* For devices between 601px and 1024px */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .client {
+    padding: 15px;
+    font-size: 16px;
+  }
+
+  .btn {
+    width: auto;
+  }
+}
+.spinner {
+  border: 4px solid #f3f3f3; /* Light gray */
+  border-top: 4px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+<div id="loadingSpinner" class="spinner" style="display: none;"></div>
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="container">
+
+    <!-- LOGIN -->
+    <div id="loginView">
+      <div class="card" style="max-width: 520px; margin: 8vh auto;">
+        <h1 style="text-align:center;">Client List Reminders</h1>
+        <p class="muted" style="text-align:center; margin-bottom:14px;">v.02 <!-- now --></p>
+
+        <div class="row" style="gap:14px;">
+          <div class="card">
+            <h3>Login</h3>
+            <form id="loginForm" class="row" style="gap:10px; margin-top:8px;">
+              <input id="loginUsername" type="text" placeholder="Username" required />
+              <input id="loginPassword" type="password" placeholder="Password" required />
+              <button class="btn primary" type="submit">Login</button>
+              <button id="forgotBtn" class="btn ghost" type="button">Forgot Password?</button>
+            </form>
+          </div>
+
+          <div class="card">
+                                        <h3>Create Account</h3>
+            <!-- Replaced form with a button -->
+            <button id="createAccountBtn" class="btn success" type="button">Create Account</button>
+            <p class="muted" style="margin-top:6px;">Make our client satisfied</p>
+          </div>
+        </div>
+      </div>
+    </div>
+<div id="loadingSpinner" class="spinner" style="display: none;"></div>
+  </div>
+
+  <!-- Modal (optional) -->
+  <!-- If you want the modal, use this block -->
+  <div id="registerModal" class="dialog-backdrop">
+      <h3>    Create Account</h3>
+    <div class="dialog">
+      <form id="registerForm" class="row" style="gap:10px;">
+        <input id="regUsername" type="text" placeholder="Username" required />
+        <input id="regEmail" type="email" placeholder="Email (used as sender)" required />
+        <input id="regPassword" type="password" placeholder="Password" required />
+        <input id="regQ" type="text" placeholder="Recovery question" required />
+        <input id="regA" type="text" placeholder="Recovery answer" required />
+        <div class="actions">
+          <button class="btn success" type="submit">Create Account</button>
+          <button class="btn ghost" type="button" onclick="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Modal Toggle Script
+    document.getElementById('createAccountBtn').addEventListener('click', function() {
+      document.getElementById('registerModal').classList.add('open');
+    });
+
+    function closeModal() {
+      document.getElementById('registerModal').classList.remove('open');
+    }
+  </script>
+
+</body>
+</html>
+
+
+
+    <!-- APP -->
+    <div id="appView" class="hide">
+      <div class="topbar">
+        <div class="brand">📒 Client List Reminders</div>
+        <div class="muted" id="whoami"></div>
+        <div class="menu-wrap">
+          <button id="moreBtn" class="btn">☰ Menu</button>
+          <div id="moreMenu" class="menu">
+            <div class="item" id="exportExcel">📥 Export to Excel</div>
+            <div class="item" id="backupBtn">💾 Backup (download .json)</div>
+            <label class="item" for="restoreInput" style="display:block; cursor:pointer;">📤 Restore (upload .json)</label>
+            <input id="restoreInput" type="file" accept=".json,application/json" class="hide" />
+            <div class="item" id="darkToggle">🌓 Toggle Dark</div>
+            <div class="item" id="logoutBtn">🚪 Logout</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings (email template) -->
+      <div class="card" style="margin-bottom:12px;">
+        <details>
+          <summary><strong>✉️ Email Reminder Template</strong> <span class="muted">(per user)</span></summary>
+          <div class="row" style="margin-top:10px; grid-template-columns: 1fr;">
+            <input id="tplSubject" type="text" placeholder="Subject (e.g., Payment Reminder for {{name}})" />
+            <textarea id="tplBody" placeholder="Body. Use {{name}}, {{next}}, {{plan}} tokens."></textarea>
+            <button id="saveTpl" class="btn">Save Template</button>
+            <p class="muted">Your registered email will be used as the sender by your email app.</p>
+          </div>
+        </details>
+      </div>
+
+      <!-- Add Client -->
+      <div class="card" style="margin-bottom:12px;">
+        <form id="clientForm" class="row" style="grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr 1fr auto;">
+          <input type="text" id="clientName" placeholder="Client Name" required />
+          <input type="email" id="clientEmail" placeholder="Client Email" />
+          <input type="text" id="clientPhone" placeholder="Contact No." />
+          <input type="text" id="clientAddress" placeholder="Address" />
+          <input type="date" id="startDate" required />
+          <input type="text" id="clientPlan" placeholder="Plan (e.g. $50)" required />
+          <button class="btn primary" type="submit">Add</button>
+        </form>
+      </div>
+
+      <!-- Filters -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="row" style="grid-template-columns: 2fr 1fr 1fr;">
+          <input id="searchInput" type="text" placeholder="Search by client name…" />
+          <select id="filterSelect">
+            <option value="all">All</option>
+            <option value="due-month">Due this month</option>
+            <option value="overdue">Overdue</option>
+            <option value="upcoming">Upcoming (later)</option>
+          </select>
+          <select id="sortSelect">
+            <option value="name-asc">Sort: Name ↑</option>
+            <option value="name-desc">Sort: Name ↓</option>
+            <option value="date-asc">Sort: Next payment ↑</option>
+            <option value="date-desc">Sort: Next payment ↓</option>
+            <option value="plan-asc">Sort: Plan ↑</option>
+            <option value="plan-desc">Sort: Plan ↓</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Lists -->
+      <div>
+        <div class="section-title">
+          <span>📅 This Month</span>
+          <span class="muted" id="countThisMonth">0</span>
+        </div>
+        <div id="dueList" class="list"></div>
+
+        <div class="section-title" style="margin-top:18px;">
+          <span>✅ Paid / Later</span>
+          <span class="muted" id="countLater">0</span>
+        </div>
+        <div id="paidList" class="list"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Dialog -->
+  <div id="dialogBackdrop" class="dialog-backdrop">
+    <div class="dialog card">
+      <h3 id="dialogTitle">Dialog</h3>
+      <div id="dialogBody" class="row"></div>
+      <div class="actions">
+        <button id="dialogCancel" class="btn">Cancel</button>
+        <button id="dialogOk" class="btn primary">OK</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ======== STORAGE SHARED WITH ADMIN APP ======== */
+const ADMIN_USERNAME = 'admin'; // must match admin app
+
+// users = { [username]: { email, passwordHash, recoveryQ, recoveryHash, clients:[], prefs:{darkMode, tplSubject, tplBody}, isAdmin?, createdAt } }
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const today0 = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+function loadUsers(){ try{return JSON.parse(localStorage.getItem('users')||'{}')}catch{return{}} }
+function saveUsers(){ localStorage.setItem('users', JSON.stringify(users)); }
+function setTheme(d){ document.documentElement.setAttribute('data-theme', d?'dark':'light'); }
+function escapeHtml(s=''){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function escapeAttr(s=''){return escapeHtml(s)}
+async function sha256Hex(text){ const enc=new TextEncoder().encode(text); const hash=await crypto.subtle.digest('SHA-256',enc); return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+
+let users = loadUsers();
+let currentUser = localStorage.getItem('currentUser') || null;
+
+
+// Ensure admin exists (user app doesn't expose admin tools)
+(async function ensureAdmin(){
+  if(!users[ADMIN_USERNAME]){
+    users[ADMIN_USERNAME] = {
+      isAdmin: true,
+      email: 'admin@example.com',
+      passwordHash: await sha256Hex('admin123'),
+      recoveryQ: 'Admin recovery hint?',
+      recoveryHash: await sha256Hex('admin'),
+      clients: [],
+      prefs: { darkMode:false, tplSubject:'Payment Reminder for {{name}}', tplBody:'Hello {{name}},\\n\\nYour next payment is due on {{next}} for {{plan}}.\\n\\nThank you.' },
+      createdAt: new Date().toISOString()
+    };
+    saveUsers();
+  }
+})();
+
+
+function formatDate(d){ return d.toISOString().split('T')[0]; }
+function nextPaymentFrom(startDate){
+  const now = today0();
+  const next = new Date(startDate); next.setHours(0,0,0,0);
+  while(next < now){ next.setMonth(next.getMonth()+1); }
+  return next;
+}
+function isToday(dateObj){
+  const t = today0().getTime(); const d = new Date(dateObj); d.setHours(0,0,0,0);
+  return d.getTime() === t;
+}
+function isThisMonth(dateObj){
+  const t = today0(); return dateObj.getMonth()===t.getMonth() && dateObj.getFullYear()===t.getFullYear();
+}
+function isOverdue(dateObj){
+  const now = today0(); const d = new Date(dateObj); d.setHours(0,0,0,0);
+  return d < now;
+}
+
+async function register(username, email, password, q, a){
+  username = username.trim();
+  email = (email||'').trim();
+  if(!username || !email || !password || !q || !a) return alert('Please fill all fields.');
+  if(users[username]) return alert('Username already exists.');
+  users[username] = {
+    email,
+    passwordHash: await sha256Hex(password),
+    recoveryQ: q.trim(),
+    recoveryHash: await sha256Hex(a.trim()),
+    clients: [],
+    prefs: { darkMode:false, tplSubject:'Payment Reminder for {{name}}', tplBody:'Hello {{name}},\\n\\nYour next payment is due on {{next}} for {{plan}}.\\n\\nThank you.' },
+    isAdmin: false,
+    createdAt: new Date().toISOString()
+  };
+  saveUsers();
+  alert('Account created! You can now login.');
+}
+async function login(username, password){
+  username = username.trim();
+  if(!users[username] || users[username].isAdmin) return alert('Invalid username or password.');
+  const ok = (await sha256Hex(password)) === users[username].passwordHash;
+  if(!ok) return alert('Invalid username or password.');
+  currentUser = username; localStorage.setItem('currentUser', username);
+  setTheme(!!users[currentUser].prefs?.darkMode);
+  $('#whoami').textContent = `${currentUser} • ${users[currentUser].email}`;
+  $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide');
+  render();
+}
+function logout(){ localStorage.removeItem('currentUser'); currentUser=null; $('#appView').classList.add('hide'); $('#loginView').classList.remove('hide'); setTheme(false); $('#loginForm').reset(); }
+
+function getClients(){ return users[currentUser]?.clients || []; }
+function setClients(list){ users[currentUser].clients = list; saveUsers(); }
+
+// Email template helpers
+function getTpl(){ const p = users[currentUser].prefs || {}; return { subject: p.tplSubject || 'Payment Reminder for {{name}}', body: p.tplBody || 'Hello {{name}},\\n\\nYour next payment is due on {{next}} for {{plan}}.\\n\\nThank you.' }; }
+function setTpl(subj, body){ users[currentUser].prefs = users[currentUser].prefs || {}; users[currentUser].prefs.tplSubject = subj; users[currentUser].prefs.tplBody = body; saveUsers(); }
+
+// Status for export/sort
+function statusFor(c){
+  const next = nextPaymentFrom(new Date(c.startDate));
+  if (isToday(next)) return 'Due Today';
+  if (isThisMonth(next)) return 'Due This Month';
+  return 'Paid for Next Month';
+}
+function fetchData() {
+  // Show the spinner
+  document.getElementById('loadingSpinner').style.display = 'block';
+
+  fetch('https://api.example.com/data')
+    .then(response => response.json())
+    .then(data => {
+      // Process the data and render it
+      renderData(data);
+    })
+    .finally(() => {
+      // Hide the spinner when done
+      document.getElementById('loadingSpinner').style.display = 'none';
+    });
+}
+
+function render(){
+  const dueWrap = $('#dueList'), paidWrap = $('#paidList');
+  dueWrap.innerHTML=''; paidWrap.innerHTML='';
+
+  // fill template UI
+  const tpl = getTpl();
+  $('#tplSubject').value = tpl.subject;
+  $('#tplBody').value = tpl.body;
+
+  let list = getClients().map((c,i)=>({ ...c, _index:i, _next: nextPaymentFrom(new Date(c.startDate)) }));
+
+  // search/filter/sort
+  const q = $('#searchInput').value.trim().toLowerCase();
+  if(q) list = list.filter(c => (c.name||'').toLowerCase().includes(q));
+  const filt = $('#filterSelect').value;
+  if(filt==='due-month') list = list.filter(c => isThisMonth(c._next));
+  if(filt==='overdue') list = list.filter(c => isOverdue(c._next));
+  if(filt==='upcoming') list = list.filter(c => !isThisMonth(c._next) && !isOverdue(c._next));
+  const sort = $('#sortSelect').value;
+  const n = v => (parseFloat((v||'').replace(/[^0-9.]/g,''))||0);
+  const cmp = {
+    'name-asc': (a,b)=>(a.name||'').localeCompare(b.name||''),
+    'name-desc':(a,b)=>(b.name||'').localeCompare(a.name||''),
+    'date-asc': (a,b)=> a._next - b._next,
+    'date-desc':(a,b)=> b._next - a._next,
+    'plan-asc': (a,b)=> n(a.plan) - n(b.plan),
+    'plan-desc':(a,b)=> n(b.plan) - n(a.plan),
+  }[sort] || ((a,b)=>0);
+  list.sort(cmp);
+  
+  
+
+
+  let countThis=0, countLater=0;
+  list.forEach(c=>{
+    const nextStr = formatDate(c._next);
+    const dueToday = isToday(c._next);
+    const inThisMonth = isThisMonth(c._next);
+    const overdue = isOverdue(new Date(c._next.getTime()-86400000));
+
+    const card = document.createElement('div');
+    card.className = 'client';
+    if (c.justPaid) card.classList.add('paid');
+    if (dueToday) card.classList.add('today');
+    if (overdue) card.classList.add('overdue');
+
+    const details = `
+      <details>
+        <summary class="muted">More info</summary>
+        <div class="row" style="margin-top:8px; grid-template-columns: 1fr 1fr;">
+          <label class="label">Email</label><input class="inp email" data-i="${c._index}" type="email" value="${escapeAttr(c.email||'')}"/>
+          <label class="label">Phone</label><input class="inp phone" data-i="${c._index}" type="text" value="${escapeAttr(c.phone||'')}"/>
+          <label class="label">Address</label><input class="inp addr" data-i="${c._index}" type="text" value="${escapeAttr(c.address||'')}"/>
+          <label class="label">Notes</label><textarea class="inp notes" data-i="${c._index}">${escapeHtml(c.notes||'')}</textarea>
+        </div>
+      </details>`;
+
+    card.innerHTML = `
+      <div class="info">
+        <div><div class="label">Name</div><div class="value">${escapeHtml(c.name||'')}</div></div>
+        <div><div class="label">Plan</div><div><input class="inp plan" data-i="${c._index}" type="text" value="${escapeAttr(c.plan||'')}" /></div></div>
+        <div><div class="label">Start Date</div><div><input class="inp date" data-i="${c._index}" type="date" value="${escapeAttr(c.startDate)}" /></div></div>
+        <div><div class="label">Next Payment</div><div class="value">${dueToday?'🟧 Today':nextStr}</div></div>
+      </div>
+      <div class="actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn success paid" data-i="${c._index}">✅ Mark Paid</button>
+        <button class="btn" data-action="email" data-i="${c._index}">✉️ Email</button>
+        <button class="btn danger del" data-i="${c._index}">🗑️ Delete</button>
+      </div>
+      ${details}
+    `;
+    if(inThisMonth){ dueWrap.appendChild(card); countThis++; } else { paidWrap.appendChild(card); countLater++; }
+  });
+  $('#countThisMonth').textContent = countThis;
+  $('#countLater').textContent = countLater;
+
+  // bind actions
+  $$('.btn.success.paid').forEach(b=>b.addEventListener('click', onMarkPaid));
+  $$('.btn.danger.del').forEach(b=>b.addEventListener('click', onDelete));
+  $$('.inp.date').forEach(i=>i.addEventListener('change', onEditDate));
+  $$('.inp.plan').forEach(i=>i.addEventListener('input', onEditPlan));
+  $$('.inp.email').forEach(i=>i.addEventListener('input', onEditEmail));
+  $$('.inp.phone').forEach(i=>i.addEventListener('input', onEditPhone));
+  $$('.inp.addr').forEach(i=>i.addEventListener('input', onEditAddr));
+  $$('.inp.notes').forEach(i=>i.addEventListener('input', onEditNotes));
+  $$('button[data-action="email"]').forEach(b=>b.addEventListener('click', onEmail));
+}
+
+function onMarkPaid(e){
+  const i = +e.currentTarget.dataset.i;
+  if(!confirm('Mark as paid and move next payment by 1 month?')) return;
+  const list = getClients();
+  const d = new Date(list[i].startDate); d.setMonth(d.getMonth()+1);
+  list[i].startDate = formatDate(d);
+  list[i].justPaid = true;
+  setClients(list); render();
+  setTimeout(()=>{ const l2 = getClients(); if(l2[i]) delete l2[i].justPaid; setClients(l2); render(); },1000);
+}
+function onDelete(e) {
+  const i = +e.currentTarget.dataset.i;
+  const client = getClients()[i];
+  
+  // Show confirmation with client name
+  if (!confirm(`Are you sure you want to delete ${client.name}? This action cannot be undone.`)) return;
+  
+  const list = getClients();
+  list.splice(i, 1);
+  setClients(list);
+  render();
+}
+function onEditDate(e){
+  const i = +e.currentTarget.dataset.i;
+  const list = getClients(); list[i].startDate = e.currentTarget.value; setClients(list); render();
+}
+function onEditPlan(e){
+  const i = +e.currentTarget.dataset.i;
+  const list = getClients(); list[i].plan = e.currentTarget.value; setClients(list);
+}
+function onEditEmail(e){
+  const i = +e.currentTarget.dataset.i;
+  const list = getClients(); list[i].email = e.currentTarget.value; setClients(list);
+}
+function onEditPhone(e){
+  const i = +e.currentTarget.dataset.i;
+  const list = getClients(); list[i].phone = e.currentTarget.value; setClients(list);
+}
+function onEditAddr(e){
+  const i = +e.currentTarget.dataset.i;
+  const list = getClients(); list[i].address = e.currentTarget.value; setClients(list);
+}
+function onEditNotes(e){
+  const i = +e.currentTarget.dataset.i;
+  const list = getClients(); list[i].notes = e.currentTarget.value; setClients(list);
+}
+
+function onEmail(e){
+  const i = +e.currentTarget.dataset.i;
+  const c = getClients()[i];
+  const next = formatDate(nextPaymentFrom(new Date(c.startDate)));
+  const tpl = getTpl();
+  const subject = encodeURIComponent(tpl.subject.replace(/{{name}}/g, c.name||'').replace(/{{next}}/g, next).replace(/{{plan}}/g, c.plan||''));
+  const body = encodeURIComponent(tpl.body.replace(/{{name}}/g, c.name||'').replace(/{{next}}/g, next).replace(/{{plan}}/g, c.plan||''));
+  const to = encodeURIComponent(c.email || '');
+  const footer = `%0D%0A%0D%0ASent from: ${encodeURIComponent(users[currentUser].email||'')}`;
+  location.href = `mailto:${to}?subject=${subject}&body=${body}${footer}`;
+}
+
+// Export / backup / restore / theme / templates
+function exportToExcel(){
+  const list = getClients().map(c=>({ ...c, _next: nextPaymentFrom(new Date(c.startDate)) }));
+  const order = { 'Due Today':0, 'Due This Month':1, 'Paid for Next Month':2 };
+  list.sort((a,b)=> (order[statusFor(a)] - order[statusFor(b)]) || (a._next - b._next));
+  const data = list.map(c=>({
+    "Client Name": c.name,
+    "Email": c.email || '',
+    "Phone": c.phone || '',
+    "Address": c.address || '',
+    "Plan": c.plan || '',
+    "Start Date": c.startDate,
+    "Next Payment": formatDate(c._next),
+    "Status": statusFor(c),
+    "Notes": c.notes || ''
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Clients");
+  XLSX.writeFile(wb, `${currentUser||'user'}_Clients.xlsx`);
+}
+function download(filename, text){
+  const blob = new Blob([text], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+}
+function backupUser(){
+  const payload = { username: currentUser, clients: getClients() };
+  download(`${currentUser}_backup.json`, JSON.stringify(payload,null,2));
+}
+function restoreUser(file){
+  const reader = new FileReader();
+  reader.onload = ()=> {
+    try {
+      const obj = JSON.parse(reader.result);
+      if(!obj || !Array.isArray(obj.clients)) throw new Error('Invalid file');
+      setClients(obj.clients); alert('Restore complete!'); render();
+    } catch { alert('Could not restore — invalid file.'); }
+  };
+  reader.readAsText(file);
+}
+function toggleDark(){
+  const prefs = users[currentUser].prefs || { darkMode:false };
+  prefs.darkMode = !prefs.darkMode;
+  users[currentUser].prefs = prefs; saveUsers(); setTheme(prefs.darkMode);
+}
+
+function showDialog(title, bodyNode, onOk, okLabel='OK', cancelLabel='Cancel'){
+  $('#dialogTitle').textContent = title;
+  const body = $('#dialogBody'); body.innerHTML=''; if(bodyNode) body.appendChild(bodyNode);
+  $('#dialogBackdrop').classList.add('open');
+  $('#dialogOk').textContent = okLabel; $('#dialogCancel').textContent = cancelLabel;
+  const okHandler = async ()=>{
+    if(typeof onOk === 'function'){ const res = await onOk(); if(res === false) return; }
+    closeDialog();
+  };
+  $('#dialogOk').onclick = okHandler;
+  $('#dialogCancel').onclick = closeDialog;
+}
+function closeDialog(){ $('#dialogBackdrop').classList.remove('open'); }
+
+function openForgotDialog(){
+  const wrap = document.createElement('div');
+  wrap.className = 'row';
+  wrap.innerHTML = `
+    <div class="row">
+      <input id="fpUser" type="text" placeholder="Username" />
+      <div id="fpQWrap" class="hide">
+        <div class="muted" id="fpQuestion" style="margin:6px 0;"></div>
+        <input id="fpAnswer" type="text" placeholder="Your recovery answer" />
+        <input id="fpNewPw" type="password" placeholder="New password" />
+        <div class="row" style="grid-template-columns: 1fr 1fr;">
+          <button id="fpEmailMe" class="btn">Email me the instructions</button>
+          <button id="fpEmailAdmin" class="btn">Email admin</button>
+        </div>
+      </div>
+    </div>`;
+  showDialog('Forgot Password', wrap, async ()=>{
+    const uname = wrap.querySelector('#fpUser').value.trim();
+    if(!uname){ alert('Enter username first, then click OK to show question.'); return false; }
+    const u = users[uname];
+    if(!u || u.isAdmin){ alert('No such user.'); return false; }
+    if(wrap.querySelector('#fpQWrap').classList.contains('hide')){
+      wrap.querySelector('#fpQuestion').textContent = 'Recovery question: ' + (u.recoveryQ || '(none)');
+      wrap.querySelector('#fpQWrap').classList.remove('hide');
+      // wire email helpers
+      wrap.querySelector('#fpEmailMe').onclick = ()=>{
+        if(!u.email){ alert('No email saved on this account.'); return; }
+        const subject = encodeURIComponent('Password help for Client List Reminders');
+        const body = encodeURIComponent(
+          'Hello '+uname+',\\n\\nHere is your recovery question to reset password inside the app:\\n\\n'+
+          (u.recoveryQ||'(none)')+'\\n\\nIf you still need help, reply to this email.'
+        );
+        location.href = `mailto:${encodeURIComponent(u.email)}?subject=${subject}&body=${body}`;
+      };
+      wrap.querySelector('#fpEmailAdmin').onclick = ()=>{
+        const admin = users[ADMIN_USERNAME];
+        const to = encodeURIComponent(admin?.email||'admin@example.com');
+        const subject = encodeURIComponent('Reset password request for '+uname);
+        const body = encodeURIComponent('Hello Admin,\\n\\nPlease reset the password for user "'+uname+'".\\n\\nThank you.');
+        location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+      };
+      return false;
+    } else {
+      const ans = wrap.querySelector('#fpAnswer').value.trim();
+      const newpw = wrap.querySelector('#fpNewPw').value;
+      if(!ans || !newpw) { alert('Please fill answer and new password.'); return false; }
+      const ok = (await sha256Hex(ans)) === (u.recoveryHash || '');
+      if(!ok){ alert('Incorrect recovery answer.'); return false; }
+      u.passwordHash = await sha256Hex(newpw); saveUsers(); alert('Password updated!'); return true;
+    }
+  }, 'Next', 'Cancel');
+}
+
+// Wire UI
+$('#registerForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  await register($('#regUsername').value, $('#regEmail').value, $('#regPassword').value, $('#regQ').value, $('#regA').value);
+  e.target.reset();
+});
+$('#loginForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  await login($('#loginUsername').value, $('#loginPassword').value);
+});
+$('#forgotBtn').addEventListener('click', openForgotDialog);
+
+$('#moreBtn').addEventListener('click', ()=> $('#moreMenu').classList.toggle('open'));
+document.addEventListener('click', e=>{ if(!e.target.closest('.menu-wrap')) $('#moreMenu').classList.remove('open'); });
+$('#exportExcel').addEventListener('click', exportToExcel);
+$('#backupBtn').addEventListener('click', backupUser);
+$('#restoreInput').addEventListener('change', e=>{ if(e.target.files?.[0]) restoreUser(e.target.files[0]); e.target.value=''; $('#moreMenu').classList.remove('open'); });
+$('#darkToggle').addEventListener('click', toggleDark);
+$('#logoutBtn').addEventListener('click', logout);
+
+const scheduleRender = (()=>{ let t=null; return ()=>{ clearTimeout(t); t=setTimeout(render,120); }; })();
+let searchTimeout;
+$('#searchInput').addEventListener('input', function() {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    render();  // Trigger render after 500ms
+  }, 500);
+});
+
+
+$('#filterSelect').addEventListener('change', render);
+$('#sortSelect').addEventListener('change', render);
+
+// Function to validate email format
+function isValidEmail(email) {
+  const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+  return regex.test(email);
+}
+
+// Client form submission handler
+// Function to check for duplicates
+function isDuplicateClient(email, phone) {
+  const clients = getClients();
+  return clients.some(client => client.email === email || client.phone === phone);
+}
+
+$('#clientForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('#clientName').value.trim();
+  const email = $('#clientEmail').value.trim();
+  const phone = $('#clientPhone').value.trim();
+  const address = $('#clientAddress').value.trim();
+  const startDate = $('#startDate').value;
+  const plan = $('#clientPlan').value.trim();
+  
+  // Check if the client already exists
+  if (isDuplicateClient(email, phone)) {
+    alert('Client with this email or phone number already exists.');
+    return;
+  }
+  
+  if (!name || !startDate) return;
+
+  const list = getClients();
+  list.push({ name, email, phone, address, startDate, plan, notes: '' });
+  setClients(list);
+  e.target.reset();
+  render();
+});
+
+$('#saveTpl').addEventListener('click', ()=>{
+  setTpl($('#tplSubject').value, $('#tplBody').value);
+  alert('Template saved!');
+});
+
+// Fetch clients from the back-end API
+fetch('/api/clients')
+  .then(response => response.json())
+  .then(clients => setClients(clients));
+
+// Save a new client
+function saveClient(newClient) {
+  fetch('/api/clients', {
+    method: 'POST',
+    body: JSON.stringify(newClient),
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(response => response.json())
+    .then(savedClient => {
+      alert('Client saved');
+      render();
+    });
+}
+
+(function boot(){
+// Save data to localStorage
+localStorage.setItem('dataKey', JSON.stringify(data));
+
+// Retrieve data from localStorage
+const data = JSON.parse(localStorage.getItem('dataKey'));
+  if(saved && users[saved] && !users[saved].isAdmin){
+    currentUser = saved;
+    setTheme(!!users[currentUser].prefs?.darkMode);
+    $('#whoami').textContent = `${currentUser} • ${users[currentUser].email}`;
+    $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide'); render();
+  } else {
+    setTheme(false);
+  }
+})();
+</script>
+</body>
+</html>
+

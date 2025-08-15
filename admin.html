@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Client List Reminders — Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #111a2c;
+      --text: #e5e7eb;
+      --muted: #9aa7bd;
+      --primary: #3b82f6;
+      --accent: #22c55e;
+      --warn: #fbbf24;
+      --danger: #ef4444;
+      --border: #1f2a44;
+      --shadow: 0 10px 30px rgba(0,0,0,.5);
+      --radius: 14px;
+      --pad: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 16px;
+      background: var(--bg); color: var(--text);
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;
+      line-height: 1.45;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: calc(var(--pad) * 1.2);
+    }
+    .row { display: grid; gap: 10px; }
+    .btn, button {
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+      background: var(--card); color: var(--text); cursor:pointer;
+      transition: transform .06s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background:var(--primary); color:#0b1220; border-color:transparent; }
+    .btn.success { background:var(--accent); color:#0b1220; border-color:transparent; }
+    .btn.warn { background:var(--warn); color:#0b1220; border-color:transparent; }
+    .btn.danger { background:var(--danger); color:#fff; border-color:transparent; }
+    input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background: var(--card); color: var(--text); outline:none; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding:8px; border-bottom:1px solid var(--border); text-align:left; }
+    .muted { color: var(--muted); }
+    .hide { display:none !important; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div id="loginView">
+      <div class="card" style="max-width:520px; margin: 10vh auto;">
+        <h1 style="text-align:center;">Client List Reminders — Admin</h1>
+        <p class="muted" style="text-align:center;">(Separate from user app)</p>
+        <form id="loginForm" class="row" style="margin-top:12px;">
+          <input id="loginUsername" type="text" placeholder="Admin username" required />
+          <input id="loginPassword" type="password" placeholder="Password" required />
+          <button class="btn primary" type="submit">Login</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="appView" class="hide">
+      <div class="row" style="grid-template-columns: 1fr auto;">
+        <h2>Admin Dashboard</h2>
+        <div class="row" style="grid-template-columns: auto auto; gap:8px;">
+          <button id="exportAll" class="btn">📥 Export all users list (xlsx)</button>
+          <button id="logoutBtn" class="btn">🚪 Logout</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr;">
+          <input id="searchInput" type="text" placeholder="Search username or email…" />
+          <button id="newAdminPw" class="btn warn">Change admin password</button>
+          <button id="newAdminEmail" class="btn">Change admin email</button>
+          <button id="backupAll" class="btn">💾 Backup ALL (JSON)</button>
+          <label class="btn" for="restoreAll">📤 Restore ALL (JSON)</label>
+          <input id="restoreAll" class="hide" type="file" accept=".json,application/json" />
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div style="overflow:auto; max-height:60vh;">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Clients</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const ADMIN_USERNAME = 'admin';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+function loadUsers(){ try{return JSON.parse(localStorage.getItem('users')||'{}')}catch{return{}} }
+function saveUsers(){ localStorage.setItem('users', JSON.stringify(users)); }
+async function sha256Hex(text){ const enc=new TextEncoder().encode(text); const hash=await crypto.subtle.digest('SHA-256',enc); return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+
+let users = loadUsers();
+let currentUser = null;
+
+// Ensure admin exists
+(async function ensureAdmin(){
+  if(!users[ADMIN_USERNAME]){
+    users[ADMIN_USERNAME] = {
+      isAdmin: true,
+      email: 'admin@example.com',
+      passwordHash: await sha256Hex('admin123'),
+      recoveryQ: 'Admin recovery hint?',
+      recoveryHash: await sha256Hex('admin'),
+      clients: [],
+      prefs: { darkMode:true },
+      createdAt: new Date().toISOString()
+    };
+    saveUsers();
+  }
+})();
+
+async function login(username, password){
+  username = username.trim();
+  if(!users[username] || !users[username].isAdmin) return alert('Not an admin account.');
+  const ok = (await sha256Hex(password)) === users[username].passwordHash;
+  if(!ok) return alert('Wrong password.');
+  currentUser = username; localStorage.setItem('currentUser', username);
+  $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide');
+  render();
+}
+function logout(){ localStorage.removeItem('currentUser'); currentUser=null; $('#appView').classList.add('hide'); $('#loginView').classList.remove('hide'); $('#loginForm').reset(); }
+
+function render(){
+  const tbody = $('#usersTbody'); tbody.innerHTML='';
+  const q = $('#searchInput').value.trim().toLowerCase();
+  Object.keys(users).sort().forEach(u=>{
+    const user = users[u];
+    const email = user.email || '';
+    if(q && !(u.toLowerCase().includes(q) || email.toLowerCase().includes(q))) return;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${u}</td>
+      <td>${email}</td>
+      <td>${user.isAdmin?'admin':'user'}</td>
+      <td>${(user.clients||[]).length}</td>
+      <td>${(user.createdAt||'').split('T')[0]}</td>
+      <td style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="btn" data-act="export" data-u="${u}">Export</button>
+        <button class="btn" data-act="reset" data-u="${u}">Reset PW</button>
+        <button class="btn danger" data-act="delete" data-u="${u}">Delete</button>
+      </td>`;
+    if(u === ADMIN_USERNAME){
+      tr.querySelector('[data-act="delete"]').disabled = true;
+    }
+    tbody.appendChild(tr);
+  });
+
+  tbody.addEventListener('click', async (e)=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    const act = btn.dataset.act, uname = btn.dataset.u;
+    if(act==='export'){
+      const payload = { username: uname, email: users[uname].email||'', clients: users[uname].clients||[] };
+      const fname = `${uname}_backup.json`;
+      const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a');
+      a.href=url; a.download=fname; a.click(); URL.revokeObjectURL(url);
+    }
+    if(act==='reset'){
+      const newpw = prompt(`Set NEW password for "${uname}":`);
+      if(!newpw) return;
+      users[uname].passwordHash = await sha256Hex(newpw);
+      saveUsers(); alert('Password reset.');
+    }
+    if(act==='delete'){
+      if(uname===ADMIN_USERNAME) return alert('Cannot delete default admin.');
+      if(!confirm(`Delete user "${uname}" and all their data?`)) return;
+      delete users[uname]; saveUsers(); alert('User deleted.'); render();
+    }
+  }, { once: true });
+}
+
+function exportAllUsersXlsx(){
+  const data = Object.keys(users).sort().map(u=>{
+    const user = users[u];
+    return {
+      Username: u,
+      Email: user.email || '',
+      Role: user.isAdmin ? 'admin' : 'user',
+      Clients: (user.clients||[]).length,
+      Created: (user.createdAt||'').split('T')[0]
+    };
+  });
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Users");
+  XLSX.writeFile(wb, `all_users.xlsx`);
+}
+
+function backupAll(){
+  const blob = new Blob([JSON.stringify(users,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='all_users_backup.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+function restoreAll(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try {
+      const obj = JSON.parse(reader.result);
+      if(!obj || typeof obj!=='object') throw new Error('Invalid');
+      users = obj; saveUsers(); alert('All users restored.'); render();
+    } catch { alert('Invalid file.'); }
+  };
+  reader.readAsText(file);
+}
+
+// Wire UI
+$('#loginForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  await login($('#loginUsername').value, $('#loginPassword').value);
+});
+$('#logoutBtn').addEventListener('click', logout);
+$('#searchInput').addEventListener('input', ()=>{ render(); });
+$('#exportAll').addEventListener('click', exportAllUsersXlsx);
+$('#backupAll').addEventListener('click', backupAll);
+$('#restoreAll').addEventListener('change', e=>{ if(e.target.files?.[0]) restoreAll(e.target.files[0]); e.target.value=''; });
+
+$('#newAdminPw').addEventListener('click', async ()=>{
+  const newpw = prompt('Enter NEW admin password:');
+  if(!newpw) return;
+  users[ADMIN_USERNAME].passwordHash = await sha256Hex(newpw);
+  saveUsers(); alert('Admin password updated.');
+});
+$('#newAdminEmail').addEventListener('click', ()=>{
+  const email = prompt('Enter admin email:', users[ADMIN_USERNAME].email||'');
+  if(!email) return;
+  users[ADMIN_USERNAME].email = email; saveUsers(); alert('Admin email updated.');
+});
+
+(function boot(){
+  const saved = localStorage.getItem('currentUser');
+  if(saved && users[saved] && users[saved].isAdmin){ $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide'); render(); }
+})();
+</script>
+</body>
+</html>
