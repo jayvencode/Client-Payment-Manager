@@ -5,10 +5,11 @@
   <title>Client List Reminders — User</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- ✅ Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js"></script>
+  <!-- ✅ Firebase SDKs (Compat builds to keep your old `firebase.*` API) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
 
   <!-- ✅ Firebase Initialization -->
   <script>
@@ -16,20 +17,16 @@
       apiKey: "AIzaSyD8KyIuPpW4w9vwEwfzemhxYYp2nJy4Io8",
       authDomain: "client-management-f6060.firebaseapp.com",
       projectId: "client-management-f6060",
-      storageBucket: "client-management-f6060.firebasestorage.app",
+      storageBucket: "client-management-f6060.appspot.com", // ✅ fixed domain
       messagingSenderId: "267148533200",
       appId: "1:267148533200:web:59f74ba662122c81c22dd5",
       measurementId: "G-M6QEGME5SZ"
     };
-
     firebase.initializeApp(firebaseConfig);
-    firebase.analytics(); // Optional
+    if (typeof firebase.analytics === 'function') { firebase.analytics(); }
   </script>
-  <meta charset="UTF-8" />
-  <title>Client List Reminders — User</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
-  
     :root {
       --bg: #f6f7fb;
       --card: #ffffff;
@@ -130,45 +127,25 @@
     .dialog-backdrop.open { display:flex; }
     .dialog { max-width:520px; width:100%; }
     .dialog .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
-	/* For devices smaller than 600px */
-@media (max-width: 600px) {
-  .client {
-    padding: 10px;
-    font-size: 14px;
-  }
-
-  .btn {
-    width: 100%;
-    padding: 15px;
-  }
-}
-
-/* For devices between 601px and 1024px */
-@media (min-width: 601px) and (max-width: 1024px) {
-  .client {
-    padding: 15px;
-    font-size: 16px;
-  }
-
-  .btn {
-    width: auto;
-  }
-}
-.spinner {
-  border: 4px solid #f3f3f3; /* Light gray */
-  border-top: 4px solid #3498db; /* Blue */
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-<div id="loadingSpinner" class="spinner" style="display: none;"></div>
+    @media (max-width: 600px) {
+      .client { padding: 10px; font-size: 14px; }
+      .btn { width: 100%; padding: 15px; }
+    }
+    @media (min-width: 601px) and (max-width: 1024px) {
+      .client { padding: 15px; font-size: 16px; }
+      .btn { width: auto; }
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -178,7 +155,7 @@
     <div id="loginView">
       <div class="card" style="max-width: 520px; margin: 8vh auto;">
         <h1 style="text-align:center;">Client List Reminders</h1>
-        <p class="muted" style="text-align:center; margin-bottom:14px;">v.02 <!-- now --></p>
+        <p class="muted" style="text-align:center; margin-bottom:14px;">v.02</p>
 
         <div class="row" style="gap:14px;">
           <div class="card">
@@ -192,28 +169,27 @@
           </div>
 
           <div class="card">
-                                        <h3>Create Account</h3>
-            <!-- Replaced form with a button -->
+            <h3>Create Account</h3>
             <button id="createAccountBtn" class="btn success" type="button">Create Account</button>
             <p class="muted" style="margin-top:6px;">Make our client satisfied</p>
           </div>
         </div>
       </div>
     </div>
-<div id="loadingSpinner" class="spinner" style="display: none;"></div>
+
+    <div id="loadingSpinner" class="spinner" style="display:none; margin: 20px auto;"></div>
   </div>
 
-  <!-- Modal (optional) -->
-  <!-- If you want the modal, use this block -->
+  <!-- Register Modal -->
   <div id="registerModal" class="dialog-backdrop">
-      <h3>    Create Account</h3>
-    <div class="dialog">
+    <div class="dialog card">
+      <h3>Create Account</h3>
       <form id="registerForm" class="row" style="gap:10px;">
-        <input id="regUsername" type="text" placeholder="Username" required />
-        <input id="regEmail" type="email" placeholder="Email (used as sender)" required />
+        <input id="regUsername" type="text" placeholder="Username (unique)" required />
+        <input id="regEmail" type="email" placeholder="Email (used for login & reset)" required />
         <input id="regPassword" type="password" placeholder="Password" required />
-        <input id="regQ" type="text" placeholder="Recovery question" required />
-        <input id="regA" type="text" placeholder="Recovery answer" required />
+        <input id="regQ" type="text" placeholder="(Optional) Recovery note for yourself" />
+        <input id="regA" type="text" placeholder="(Optional) Recovery note answer" />
         <div class="actions">
           <button class="btn success" type="submit">Create Account</button>
           <button class="btn ghost" type="button" onclick="closeModal()">Cancel</button>
@@ -222,104 +198,86 @@
     </div>
   </div>
 
-  <script>
-    // Modal Toggle Script
-    document.getElementById('createAccountBtn').addEventListener('click', function() {
-      document.getElementById('registerModal').classList.add('open');
-    });
-
-    function closeModal() {
-      document.getElementById('registerModal').classList.remove('open');
-    }
-  </script>
-
-</body>
-</html>
-
-
-
-    <!-- APP -->
-    <div id="appView" class="hide">
-      <div class="topbar">
-        <div class="brand">📒 Client List Reminders</div>
-        <div class="muted" id="whoami"></div>
-        <div class="menu-wrap">
-          <button id="moreBtn" class="btn">☰ Menu</button>
-          <div id="moreMenu" class="menu">
-            <div class="item" id="exportExcel">📥 Export to Excel</div>
-            <div class="item" id="backupBtn">💾 Backup (download .json)</div>
-            <label class="item" for="restoreInput" style="display:block; cursor:pointer;">📤 Restore (upload .json)</label>
-            <input id="restoreInput" type="file" accept=".json,application/json" class="hide" />
-            <div class="item" id="darkToggle">🌓 Toggle Dark</div>
-            <div class="item" id="logoutBtn">🚪 Logout</div>
-          </div>
+  <!-- APP -->
+  <div id="appView" class="hide">
+    <div class="topbar">
+      <div class="brand">📒 Client List Reminders</div>
+      <div class="muted" id="whoami"></div>
+      <div class="menu-wrap">
+        <button id="moreBtn" class="btn">☰ Menu</button>
+        <div id="moreMenu" class="menu">
+          <div class="item" id="exportExcel">📥 Export to Excel</div>
+          <div class="item" id="backupBtn">💾 Backup (download .json)</div>
+          <label class="item" for="restoreInput" style="display:block; cursor:pointer;">📤 Restore (upload .json)</label>
+          <input id="restoreInput" type="file" accept=".json,application/json" class="hide" />
+          <div class="item" id="darkToggle">🌓 Toggle Dark</div>
+          <div class="item" id="logoutBtn">🚪 Logout</div>
         </div>
-      </div>
-
-      <!-- Settings (email template) -->
-      <div class="card" style="margin-bottom:12px;">
-        <details>
-          <summary><strong>✉️ Email Reminder Template</strong> <span class="muted">(per user)</span></summary>
-          <div class="row" style="margin-top:10px; grid-template-columns: 1fr;">
-            <input id="tplSubject" type="text" placeholder="Subject (e.g., Payment Reminder for {{name}})" />
-            <textarea id="tplBody" placeholder="Body. Use {{name}}, {{next}}, {{plan}} tokens."></textarea>
-            <button id="saveTpl" class="btn">Save Template</button>
-            <p class="muted">Your registered email will be used as the sender by your email app.</p>
-          </div>
-        </details>
-      </div>
-
-      <!-- Add Client -->
-      <div class="card" style="margin-bottom:12px;">
-        <form id="clientForm" class="row" style="grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr 1fr auto;">
-          <input type="text" id="clientName" placeholder="Client Name" required />
-          <input type="email" id="clientEmail" placeholder="Client Email" />
-          <input type="text" id="clientPhone" placeholder="Contact No." />
-          <input type="text" id="clientAddress" placeholder="Address" />
-          <input type="date" id="startDate" required />
-          <input type="text" id="clientPlan" placeholder="Plan (e.g. $50)" required />
-          <button class="btn primary" type="submit">Add</button>
-        </form>
-      </div>
-
-      <!-- Filters -->
-      <div class="card" style="margin-bottom:12px;">
-        <div class="row" style="grid-template-columns: 2fr 1fr 1fr;">
-          <input id="searchInput" type="text" placeholder="Search by client name…" />
-          <select id="filterSelect">
-            <option value="all">All</option>
-            <option value="due-month">Due this month</option>
-            <option value="overdue">Overdue</option>
-            <option value="upcoming">Upcoming (later)</option>
-          </select>
-          <select id="sortSelect">
-            <option value="name-asc">Sort: Name ↑</option>
-            <option value="name-desc">Sort: Name ↓</option>
-            <option value="date-asc">Sort: Next payment ↑</option>
-            <option value="date-desc">Sort: Next payment ↓</option>
-            <option value="plan-asc">Sort: Plan ↑</option>
-            <option value="plan-desc">Sort: Plan ↓</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Lists -->
-      <div>
-        <div class="section-title">
-          <span>📅 This Month</span>
-          <span class="muted" id="countThisMonth">0</span>
-        </div>
-        <div id="dueList" class="list"></div>
-
-        <div class="section-title" style="margin-top:18px;">
-          <span>✅ Paid / Later</span>
-          <span class="muted" id="countLater">0</span>
-        </div>
-        <div id="paidList" class="list"></div>
       </div>
     </div>
-  </div>
 
+    <!-- Settings -->
+    <div class="card" style="margin-bottom:12px;">
+      <details>
+        <summary><strong>✉️ Email Reminder Template</strong> <span class="muted">(per user)</span></summary>
+        <div class="row" style="margin-top:10px; grid-template-columns: 1fr;">
+          <input id="tplSubject" type="text" placeholder="Subject (e.g., Payment Reminder for {{name}})" />
+          <textarea id="tplBody" placeholder="Body. Use {{name}}, {{next}}, {{plan}} tokens."></textarea>
+          <button id="saveTpl" class="btn">Save Template</button>
+          <p class="muted">Your registered email will be used as the sender by your email app.</p>
+        </div>
+      </details>
+    </div>
+
+    <!-- Add Client -->
+    <div class="card" style="margin-bottom:12px;">
+      <form id="clientForm" class="row" style="grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr 1fr auto;">
+        <input type="text" id="clientName" placeholder="Client Name" required />
+        <input type="email" id="clientEmail" placeholder="Client Email" />
+        <input type="text" id="clientPhone" placeholder="Contact No." />
+        <input type="text" id="clientAddress" placeholder="Address" />
+        <input type="date" id="startDate" required />
+        <input type="text" id="clientPlan" placeholder="Plan (e.g. $50)" required />
+        <button class="btn primary" type="submit">Add</button>
+      </form>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="margin-bottom:12px;">
+      <div class="row" style="grid-template-columns: 2fr 1fr 1fr;">
+        <input id="searchInput" type="text" placeholder="Search by client name…" />
+        <select id="filterSelect">
+          <option value="all">All</option>
+          <option value="due-month">Due this month</option>
+          <option value="overdue">Overdue</option>
+          <option value="upcoming">Upcoming (later)</option>
+        </select>
+        <select id="sortSelect">
+          <option value="name-asc">Sort: Name ↑</option>
+          <option value="name-desc">Sort: Name ↓</option>
+          <option value="date-asc">Sort: Next payment ↑</option>
+          <option value="date-desc">Sort: Next payment ↓</option>
+          <option value="plan-asc">Sort: Plan ↑</option>
+          <option value="plan-desc">Sort: Plan ↓</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Lists -->
+    <div>
+      <div class="section-title">
+        <span>📅 This Month</span>
+        <span class="muted" id="countThisMonth">0</span>
+      </div>
+      <div id="dueList" class="list"></div>
+
+      <div class="section-title" style="margin-top:18px;">
+        <span>✅ Paid / Later</span>
+        <span class="muted" id="countLater">0</span>
+      </div>
+      <div id="paidList" class="list"></div>
+    </div>
+  </div>
 
   <!-- Dialog -->
   <div id="dialogBackdrop" class="dialog-backdrop">
@@ -334,42 +292,16 @@
   </div>
 
 <script>
-/* ======== STORAGE SHARED WITH ADMIN APP ======== */
-const ADMIN_USERNAME = 'admin'; // must match admin app
-
-// users = { [username]: { email, passwordHash, recoveryQ, recoveryHash, clients:[], prefs:{darkMode, tplSubject, tplBody}, isAdmin?, createdAt } }
-const $ = s => document.querySelector(s);
+/* ======== Helpers & Globals ======== */
+const $  = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
-const today0 = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
-function loadUsers(){ try{return JSON.parse(localStorage.getItem('users')||'{}')}catch{return{}} }
-function saveUsers(){ localStorage.setItem('users', JSON.stringify(users)); }
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
 function setTheme(d){ document.documentElement.setAttribute('data-theme', d?'dark':'light'); }
-function escapeHtml(s=''){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function escapeHtml(s=''){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]))}
 function escapeAttr(s=''){return escapeHtml(s)}
-async function sha256Hex(text){ const enc=new TextEncoder().encode(text); const hash=await crypto.subtle.digest('SHA-256',enc); return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
-
-let users = loadUsers();
-let currentUser = localStorage.getItem('currentUser') || null;
-
-
-// Ensure admin exists (user app doesn't expose admin tools)
-(async function ensureAdmin(){
-  if(!users[ADMIN_USERNAME]){
-    users[ADMIN_USERNAME] = {
-      isAdmin: true,
-      email: 'admin@example.com',
-      passwordHash: await sha256Hex('admin123'),
-      recoveryQ: 'Admin recovery hint?',
-      recoveryHash: await sha256Hex('admin'),
-      clients: [],
-      prefs: { darkMode:false, tplSubject:'Payment Reminder for {{name}}', tplBody:'Hello {{name}},\\n\\nYour next payment is due on {{next}} for {{plan}}.\\n\\nThank you.' },
-      createdAt: new Date().toISOString()
-    };
-    saveUsers();
-  }
-})();
-
-
+const today0 = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
 function formatDate(d){ return d.toISOString().split('T')[0]; }
 function nextPaymentFrom(startDate){
   const now = today0();
@@ -377,97 +309,173 @@ function nextPaymentFrom(startDate){
   while(next < now){ next.setMonth(next.getMonth()+1); }
   return next;
 }
-function isToday(dateObj){
-  const t = today0().getTime(); const d = new Date(dateObj); d.setHours(0,0,0,0);
-  return d.getTime() === t;
-}
-function isThisMonth(dateObj){
-  const t = today0(); return dateObj.getMonth()===t.getMonth() && dateObj.getFullYear()===t.getFullYear();
-}
-function isOverdue(dateObj){
-  const now = today0(); const d = new Date(dateObj); d.setHours(0,0,0,0);
-  return d < now;
-}
+function isToday(dateObj){ const t=today0().getTime(); const d=new Date(dateObj); d.setHours(0,0,0,0); return d.getTime()===t; }
+function isThisMonth(dateObj){ const t=today0(); return dateObj.getMonth()===t.getMonth() && dateObj.getFullYear()===t.getFullYear(); }
+function isOverdue(dateObj){ const now=today0(); const d=new Date(dateObj); d.setHours(0,0,0,0); return d<now; }
 
+let currentUser = null;         // firebase.User
+let currentProfile = null;      // {username, email, prefs...}
+let clientsCache = [];          // array of {id, name, ...}
+let unsubClients = null;        // onSnapshot unsubscribe
+
+/* ======== Username <-> email mapping ========
+   We let users login with a USERNAME. We store mapping in:
+   Collection: "usernames", doc id = usernameLower, fields { uid, email }
+   User profile: "users/{uid}" doc stores { username, email, prefs... }
+=============================================*/
+
+function showSpinner(show){ $('#loadingSpinner').style.display = show ? 'block' : 'none'; }
+
+/* ======== Auth Wiring ======== */
 async function register(username, email, password, q, a){
-  username = username.trim();
+  username = (username||'').trim();
   email = (email||'').trim();
-  if(!username || !email || !password || !q || !a) return alert('Please fill all fields.');
-  if(users[username]) return alert('Username already exists.');
-  users[username] = {
-    email,
-    passwordHash: await sha256Hex(password),
-    recoveryQ: q.trim(),
-    recoveryHash: await sha256Hex(a.trim()),
-    clients: [],
-    prefs: { darkMode:false, tplSubject:'Payment Reminder for {{name}}', tplBody:'Hello {{name}},\\n\\nYour next payment is due on {{next}} for {{plan}}.\\n\\nThank you.' },
-    isAdmin: false,
-    createdAt: new Date().toISOString()
-  };
-  saveUsers();
-  alert('Account created! You can now login.');
+  if(!username || !email || !password) return alert('Please fill username, email and password.');
+  const userKey = username.toLowerCase();
+
+  showSpinner(true);
+  try{
+    // Check username availability
+    const handle = await db.collection('usernames').doc(userKey).get();
+    if (handle.exists) { alert('Username already exists.'); return; }
+
+    // Create auth account
+    const cred = await auth.createUserWithEmailAndPassword(email, password);
+    const uid = cred.user.uid;
+
+    // Save profile
+    const profile = {
+      username, email,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      prefs: { darkMode:false, tplSubject:'Payment Reminder for {{name}}', tplBody:'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.' },
+      recoveryQ: q || '', recoveryA: a || ''
+    };
+    await db.collection('users').doc(uid).set(profile);
+
+    // Save username handle
+    await db.collection('usernames').doc(userKey).set({ uid, email });
+
+    alert('Account created! You can now login.');
+    closeModal();
+  } catch(err){
+    console.error(err);
+    alert(err.message || 'Could not create account.');
+  } finally {
+    showSpinner(false);
+  }
 }
+
 async function login(username, password){
-  username = username.trim();
-  if(!users[username] || users[username].isAdmin) return alert('Invalid username or password.');
-  const ok = (await sha256Hex(password)) === users[username].passwordHash;
-  if(!ok) return alert('Invalid username or password.');
-  currentUser = username; localStorage.setItem('currentUser', username);
-  setTheme(!!users[currentUser].prefs?.darkMode);
-  $('#whoami').textContent = `${currentUser} • ${users[currentUser].email}`;
-  $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide');
-  render();
+  username = (username||'').trim();
+  if(!username || !password) return;
+  showSpinner(true);
+  try{
+    // Find email by username
+    const userKey = username.toLowerCase();
+    const handle = await db.collection('usernames').doc(userKey).get();
+    if(!handle.exists){ alert('Invalid username or password.'); return; }
+    const { email } = handle.data();
+    await auth.signInWithEmailAndPassword(email, password);
+    // onAuthStateChanged will continue the flow
+  } catch(err){
+    console.error(err);
+    alert('Invalid username or password.');
+  } finally {
+    showSpinner(false);
+  }
 }
-function logout(){ localStorage.removeItem('currentUser'); currentUser=null; $('#appView').classList.add('hide'); $('#loginView').classList.remove('hide'); setTheme(false); $('#loginForm').reset(); }
 
-function getClients(){ return users[currentUser]?.clients || []; }
-function setClients(list){ users[currentUser].clients = list; saveUsers(); }
+function logout(){
+  if(unsubClients) { unsubClients(); unsubClients = null; }
+  clientsCache = [];
+  currentProfile = null;
+  auth.signOut();
+  $('#appView').classList.add('hide');
+  $('#loginView').classList.remove('hide');
+  setTheme(false);
+  $('#loginForm').reset();
+}
 
-// Email template helpers
-function getTpl(){ const p = users[currentUser].prefs || {}; return { subject: p.tplSubject || 'Payment Reminder for {{name}}', body: p.tplBody || 'Hello {{name}},\\n\\nYour next payment is due on {{next}} for {{plan}}.\\n\\nThank you.' }; }
-function setTpl(subj, body){ users[currentUser].prefs = users[currentUser].prefs || {}; users[currentUser].prefs.tplSubject = subj; users[currentUser].prefs.tplBody = body; saveUsers(); }
+auth.onAuthStateChanged(async (user)=>{
+  if(!user){
+    // back to login
+    $('#whoami').textContent = '';
+    $('#loginView').classList.remove('hide');
+    $('#appView').classList.add('hide');
+    return;
+  }
+  currentUser = user;
+  // Load profile
+  const profSnap = await db.collection('users').doc(user.uid).get();
+  currentProfile = profSnap.exists ? profSnap.data() : { email: user.email, username: user.email.split('@')[0], prefs:{} };
 
-// Status for export/sort
+  setTheme(!!currentProfile?.prefs?.darkMode);
+  $('#whoami').textContent = `${currentProfile.username} • ${currentProfile.email}`;
+
+  // Prefill template UI
+  const p = currentProfile.prefs || {};
+  $('#tplSubject').value = p.tplSubject || 'Payment Reminder for {{name}}';
+  $('#tplBody').value    = p.tplBody || 'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.';
+
+  // Subscribe to clients in real-time
+  if(unsubClients) unsubClients();
+  unsubClients = db.collection('users').doc(user.uid).collection('clients')
+    .orderBy('name')
+    .onSnapshot(snap=>{
+      clientsCache = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      render();
+    });
+
+  $('#loginView').classList.add('hide');
+  $('#appView').classList.remove('hide');
+});
+
+/* ======== Clients / Prefs (Firestore) ======== */
+function getClients(){ return clientsCache || []; }
 function statusFor(c){
   const next = nextPaymentFrom(new Date(c.startDate));
   if (isToday(next)) return 'Due Today';
   if (isThisMonth(next)) return 'Due This Month';
   return 'Paid for Next Month';
 }
-function fetchData() {
-  // Show the spinner
-  document.getElementById('loadingSpinner').style.display = 'block';
 
-  fetch('https://api.example.com/data')
-    .then(response => response.json())
-    .then(data => {
-      // Process the data and render it
-      renderData(data);
-    })
-    .finally(() => {
-      // Hide the spinner when done
-      document.getElementById('loadingSpinner').style.display = 'none';
-    });
+async function addClient(c){
+  if(!currentUser) return;
+  await db.collection('users').doc(currentUser.uid).collection('clients').add(c);
 }
 
+async function updateClient(id, patch){
+  if(!currentUser || !id) return;
+  await db.collection('users').doc(currentUser.uid).collection('clients').doc(id).update(patch);
+}
+
+async function deleteClient(id){
+  if(!currentUser || !id) return;
+  await db.collection('users').doc(currentUser.uid).collection('clients').doc(id).delete();
+}
+
+async function savePrefs(patch){
+  if(!currentUser) return;
+  const next = { ...(currentProfile||{}), prefs: { ...(currentProfile?.prefs||{}), ...patch } };
+  await db.collection('users').doc(currentUser.uid).update({ prefs: next.prefs });
+  currentProfile = next;
+}
+
+/* ======== UI Actions kept from your code, but now using Firestore ======== */
 function render(){
   const dueWrap = $('#dueList'), paidWrap = $('#paidList');
   dueWrap.innerHTML=''; paidWrap.innerHTML='';
 
-  // fill template UI
-  const tpl = getTpl();
-  $('#tplSubject').value = tpl.subject;
-  $('#tplBody').value = tpl.body;
-
   let list = getClients().map((c,i)=>({ ...c, _index:i, _next: nextPaymentFrom(new Date(c.startDate)) }));
 
-  // search/filter/sort
   const q = $('#searchInput').value.trim().toLowerCase();
   if(q) list = list.filter(c => (c.name||'').toLowerCase().includes(q));
+
   const filt = $('#filterSelect').value;
   if(filt==='due-month') list = list.filter(c => isThisMonth(c._next));
   if(filt==='overdue') list = list.filter(c => isOverdue(c._next));
   if(filt==='upcoming') list = list.filter(c => !isThisMonth(c._next) && !isOverdue(c._next));
+
   const sort = $('#sortSelect').value;
   const n = v => (parseFloat((v||'').replace(/[^0-9.]/g,''))||0);
   const cmp = {
@@ -479,9 +487,6 @@ function render(){
     'plan-desc':(a,b)=> n(b.plan) - n(a.plan),
   }[sort] || ((a,b)=>0);
   list.sort(cmp);
-  
-  
-
 
   let countThis=0, countLater=0;
   list.forEach(c=>{
@@ -511,7 +516,7 @@ function render(){
       <div class="info">
         <div><div class="label">Name</div><div class="value">${escapeHtml(c.name||'')}</div></div>
         <div><div class="label">Plan</div><div><input class="inp plan" data-i="${c._index}" type="text" value="${escapeAttr(c.plan||'')}" /></div></div>
-        <div><div class="label">Start Date</div><div><input class="inp date" data-i="${c._index}" type="date" value="${escapeAttr(c.startDate)}" /></div></div>
+        <div><div class="label">Start Date</div><div><input class="inp date" data-i="${c._index}" type="date" value="${escapeAttr(c.startDate||'')}" /></div></div>
         <div><div class="label">Next Payment</div><div class="value">${dueToday?'🟧 Today':nextStr}</div></div>
       </div>
       <div class="actions" style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -526,7 +531,7 @@ function render(){
   $('#countThisMonth').textContent = countThis;
   $('#countLater').textContent = countLater;
 
-  // bind actions
+  // Bind actions
   $$('.btn.success.paid').forEach(b=>b.addEventListener('click', onMarkPaid));
   $$('.btn.danger.del').forEach(b=>b.addEventListener('click', onDelete));
   $$('.inp.date').forEach(i=>i.addEventListener('change', onEditDate));
@@ -538,85 +543,80 @@ function render(){
   $$('button[data-action="email"]').forEach(b=>b.addEventListener('click', onEmail));
 }
 
-function onMarkPaid(e){
+/* ======== Client item handlers (Firestore updates) ======== */
+async function onMarkPaid(e){
   const i = +e.currentTarget.dataset.i;
+  const item = getClients()[i]; if(!item) return;
   if(!confirm('Mark as paid and move next payment by 1 month?')) return;
-  const list = getClients();
-  const d = new Date(list[i].startDate); d.setMonth(d.getMonth()+1);
-  list[i].startDate = formatDate(d);
-  list[i].justPaid = true;
-  setClients(list); render();
-  setTimeout(()=>{ const l2 = getClients(); if(l2[i]) delete l2[i].justPaid; setClients(l2); render(); },1000);
+  const d = new Date(item.startDate); d.setMonth(d.getMonth()+1);
+  await updateClient(item.id, { startDate: formatDate(d) });
 }
-function onDelete(e) {
+
+async function onDelete(e) {
   const i = +e.currentTarget.dataset.i;
-  const client = getClients()[i];
-  
-  // Show confirmation with client name
-  if (!confirm(`Are you sure you want to delete ${client.name}? This action cannot be undone.`)) return;
-  
-  const list = getClients();
-  list.splice(i, 1);
-  setClients(list);
-  render();
+  const item = getClients()[i]; if(!item) return;
+  if (!confirm(`Are you sure you want to delete ${item.name || 'this client'}? This action cannot be undone.`)) return;
+  await deleteClient(item.id);
 }
-function onEditDate(e){
+async function onEditDate(e){
   const i = +e.currentTarget.dataset.i;
-  const list = getClients(); list[i].startDate = e.currentTarget.value; setClients(list); render();
+  const item = getClients()[i]; if(!item) return;
+  await updateClient(item.id, { startDate: e.currentTarget.value });
 }
-function onEditPlan(e){
+async function onEditPlan(e){
   const i = +e.currentTarget.dataset.i;
-  const list = getClients(); list[i].plan = e.currentTarget.value; setClients(list);
+  const item = getClients()[i]; if(!item) return;
+  await updateClient(item.id, { plan: e.currentTarget.value });
 }
-function onEditEmail(e){
+async function onEditEmail(e){
   const i = +e.currentTarget.dataset.i;
-  const list = getClients(); list[i].email = e.currentTarget.value; setClients(list);
+  const item = getClients()[i]; if(!item) return;
+  await updateClient(item.id, { email: e.currentTarget.value });
 }
-function onEditPhone(e){
+async function onEditPhone(e){
   const i = +e.currentTarget.dataset.i;
-  const list = getClients(); list[i].phone = e.currentTarget.value; setClients(list);
+  const item = getClients()[i]; if(!item) return;
+  await updateClient(item.id, { phone: e.currentTarget.value });
 }
-function onEditAddr(e){
+async function onEditAddr(e){
   const i = +e.currentTarget.dataset.i;
-  const list = getClients(); list[i].address = e.currentTarget.value; setClients(list);
+  const item = getClients()[i]; if(!item) return;
+  await updateClient(item.id, { address: e.currentTarget.value });
 }
-function onEditNotes(e){
+async function onEditNotes(e){
   const i = +e.currentTarget.dataset.i;
-  const list = getClients(); list[i].notes = e.currentTarget.value; setClients(list);
+  const item = getClients()[i]; if(!item) return;
+  await updateClient(item.id, { notes: e.currentTarget.value });
 }
 
 function onEmail(e){
   const i = +e.currentTarget.dataset.i;
-  const c = getClients()[i];
+  const c = getClients()[i]; if(!c) return;
   const next = formatDate(nextPaymentFrom(new Date(c.startDate)));
-  const tpl = getTpl();
-  const subject = encodeURIComponent(tpl.subject.replace(/{{name}}/g, c.name||'').replace(/{{next}}/g, next).replace(/{{plan}}/g, c.plan||''));
-  const body = encodeURIComponent(tpl.body.replace(/{{name}}/g, c.name||'').replace(/{{next}}/g, next).replace(/{{plan}}/g, c.plan||''));
+  const p = currentProfile?.prefs || {};
+  const subject = encodeURIComponent((p.tplSubject || 'Payment Reminder for {{name}}')
+    .replace(/{{name}}/g, c.name||'').replace(/{{next}}/g, next).replace(/{{plan}}/g, c.plan||''));
+  const body = encodeURIComponent((p.tplBody || 'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.')
+    .replace(/{{name}}/g, c.name||'').replace(/{{next}}/g, next).replace(/{{plan}}/g, c.plan||''));
   const to = encodeURIComponent(c.email || '');
-  const footer = `%0D%0A%0D%0ASent from: ${encodeURIComponent(users[currentUser].email||'')}`;
+  const footer = `%0D%0A%0D%0ASent from: ${encodeURIComponent(currentUser?.email||'')}`;
   location.href = `mailto:${to}?subject=${subject}&body=${body}${footer}`;
 }
 
-// Export / backup / restore / theme / templates
+/* ======== Export / Backup / Restore / Prefs ======== */
 function exportToExcel(){
   const list = getClients().map(c=>({ ...c, _next: nextPaymentFrom(new Date(c.startDate)) }));
   const order = { 'Due Today':0, 'Due This Month':1, 'Paid for Next Month':2 };
   list.sort((a,b)=> (order[statusFor(a)] - order[statusFor(b)]) || (a._next - b._next));
   const data = list.map(c=>({
-    "Client Name": c.name,
-    "Email": c.email || '',
-    "Phone": c.phone || '',
-    "Address": c.address || '',
-    "Plan": c.plan || '',
-    "Start Date": c.startDate,
-    "Next Payment": formatDate(c._next),
-    "Status": statusFor(c),
-    "Notes": c.notes || ''
+    "Client Name": c.name, "Email": c.email || '', "Phone": c.phone || '',
+    "Address": c.address || '', "Plan": c.plan || '', "Start Date": c.startDate,
+    "Next Payment": formatDate(c._next), "Status": statusFor(c), "Notes": c.notes || ''
   }));
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Clients");
-  XLSX.writeFile(wb, `${currentUser||'user'}_Clients.xlsx`);
+  XLSX.writeFile(wb, `${(currentProfile?.username)||'user'}_Clients.xlsx`);
 }
 function download(filename, text){
   const blob = new Blob([text], {type:'application/json'});
@@ -625,94 +625,68 @@ function download(filename, text){
   URL.revokeObjectURL(url);
 }
 function backupUser(){
-  const payload = { username: currentUser, clients: getClients() };
-  download(`${currentUser}_backup.json`, JSON.stringify(payload,null,2));
+  const payload = { username: currentProfile?.username || '', clients: getClients() };
+  download(`${(currentProfile?.username)||'user'}_backup.json`, JSON.stringify(payload,null,2));
 }
 function restoreUser(file){
+  if(!currentUser) return;
   const reader = new FileReader();
-  reader.onload = ()=> {
-    try {
+  reader.onload = async ()=>{
+    try{
       const obj = JSON.parse(reader.result);
       if(!obj || !Array.isArray(obj.clients)) throw new Error('Invalid file');
-      setClients(obj.clients); alert('Restore complete!'); render();
-    } catch { alert('Could not restore — invalid file.'); }
+      // Optional: clear existing clients first
+      const batch = db.batch();
+      const col = db.collection('users').doc(currentUser.uid).collection('clients');
+      // Delete existing
+      const existing = await col.get();
+      existing.forEach(doc=> batch.delete(doc.ref));
+      await batch.commit();
+
+      // Add imported
+      for (const c of obj.clients) {
+        const copy = { ...c };
+        delete copy.id; delete copy._index; delete copy._next; delete copy.justPaid;
+        await col.add(copy);
+      }
+      alert('Restore complete!');
+    } catch(e){ console.error(e); alert('Could not restore — invalid file.'); }
   };
   reader.readAsText(file);
 }
-function toggleDark(){
-  const prefs = users[currentUser].prefs || { darkMode:false };
-  prefs.darkMode = !prefs.darkMode;
-  users[currentUser].prefs = prefs; saveUsers(); setTheme(prefs.darkMode);
+async function toggleDark(){
+  const current = !!(currentProfile?.prefs?.darkMode);
+  await savePrefs({ darkMode: !current });
+  setTheme(!current);
 }
 
-function showDialog(title, bodyNode, onOk, okLabel='OK', cancelLabel='Cancel'){
-  $('#dialogTitle').textContent = title;
-  const body = $('#dialogBody'); body.innerHTML=''; if(bodyNode) body.appendChild(bodyNode);
-  $('#dialogBackdrop').classList.add('open');
-  $('#dialogOk').textContent = okLabel; $('#dialogCancel').textContent = cancelLabel;
-  const okHandler = async ()=>{
-    if(typeof onOk === 'function'){ const res = await onOk(); if(res === false) return; }
-    closeDialog();
-  };
-  $('#dialogOk').onclick = okHandler;
-  $('#dialogCancel').onclick = closeDialog;
-}
-function closeDialog(){ $('#dialogBackdrop').classList.remove('open'); }
-
-function openForgotDialog(){
-  const wrap = document.createElement('div');
-  wrap.className = 'row';
-  wrap.innerHTML = `
-    <div class="row">
-      <input id="fpUser" type="text" placeholder="Username" />
-      <div id="fpQWrap" class="hide">
-        <div class="muted" id="fpQuestion" style="margin:6px 0;"></div>
-        <input id="fpAnswer" type="text" placeholder="Your recovery answer" />
-        <input id="fpNewPw" type="password" placeholder="New password" />
-        <div class="row" style="grid-template-columns: 1fr 1fr;">
-          <button id="fpEmailMe" class="btn">Email me the instructions</button>
-          <button id="fpEmailAdmin" class="btn">Email admin</button>
-        </div>
-      </div>
-    </div>`;
-  showDialog('Forgot Password', wrap, async ()=>{
-    const uname = wrap.querySelector('#fpUser').value.trim();
-    if(!uname){ alert('Enter username first, then click OK to show question.'); return false; }
-    const u = users[uname];
-    if(!u || u.isAdmin){ alert('No such user.'); return false; }
-    if(wrap.querySelector('#fpQWrap').classList.contains('hide')){
-      wrap.querySelector('#fpQuestion').textContent = 'Recovery question: ' + (u.recoveryQ || '(none)');
-      wrap.querySelector('#fpQWrap').classList.remove('hide');
-      // wire email helpers
-      wrap.querySelector('#fpEmailMe').onclick = ()=>{
-        if(!u.email){ alert('No email saved on this account.'); return; }
-        const subject = encodeURIComponent('Password help for Client List Reminders');
-        const body = encodeURIComponent(
-          'Hello '+uname+',\\n\\nHere is your recovery question to reset password inside the app:\\n\\n'+
-          (u.recoveryQ||'(none)')+'\\n\\nIf you still need help, reply to this email.'
-        );
-        location.href = `mailto:${encodeURIComponent(u.email)}?subject=${subject}&body=${body}`;
-      };
-      wrap.querySelector('#fpEmailAdmin').onclick = ()=>{
-        const admin = users[ADMIN_USERNAME];
-        const to = encodeURIComponent(admin?.email||'admin@example.com');
-        const subject = encodeURIComponent('Reset password request for '+uname);
-        const body = encodeURIComponent('Hello Admin,\\n\\nPlease reset the password for user "'+uname+'".\\n\\nThank you.');
-        location.href = `mailto:${to}?subject=${subject}&body=${body}`;
-      };
-      return false;
-    } else {
-      const ans = wrap.querySelector('#fpAnswer').value.trim();
-      const newpw = wrap.querySelector('#fpNewPw').value;
-      if(!ans || !newpw) { alert('Please fill answer and new password.'); return false; }
-      const ok = (await sha256Hex(ans)) === (u.recoveryHash || '');
-      if(!ok){ alert('Incorrect recovery answer.'); return false; }
-      u.passwordHash = await sha256Hex(newpw); saveUsers(); alert('Password updated!'); return true;
-    }
-  }, 'Next', 'Cancel');
+async function saveTplClick(){
+  const subj = $('#tplSubject').value;
+  const body = $('#tplBody').value;
+  await savePrefs({ tplSubject: subj, tplBody: body });
+  alert('Template saved!');
 }
 
-// Wire UI
+/* ======== Forgot Password (via username -> email) ======== */
+async function openForgot(){
+  const username = prompt('Enter your username to send a reset email:');
+  if(!username) return;
+  try{
+    const key = username.toLowerCase();
+    const doc = await db.collection('usernames').doc(key).get();
+    if(!doc.exists){ alert('No such username.'); return; }
+    const { email } = doc.data();
+    await auth.sendPasswordResetEmail(email);
+    alert(`Password reset email sent to ${email}`);
+  }catch(e){ console.error(e); alert('Could not send reset email.'); }
+}
+
+/* ======== UI Wiring ======== */
+document.getElementById('createAccountBtn').addEventListener('click', ()=> {
+  document.getElementById('registerModal').classList.add('open');
+});
+function closeModal(){ document.getElementById('registerModal').classList.remove('open'); }
+
 $('#registerForm').addEventListener('submit', async e=>{
   e.preventDefault();
   await register($('#regUsername').value, $('#regEmail').value, $('#regPassword').value, $('#regQ').value, $('#regA').value);
@@ -722,7 +696,7 @@ $('#loginForm').addEventListener('submit', async e=>{
   e.preventDefault();
   await login($('#loginUsername').value, $('#loginPassword').value);
 });
-$('#forgotBtn').addEventListener('click', openForgotDialog);
+$('#forgotBtn').addEventListener('click', openForgot);
 
 $('#moreBtn').addEventListener('click', ()=> $('#moreMenu').classList.toggle('open'));
 document.addEventListener('click', e=>{ if(!e.target.closest('.menu-wrap')) $('#moreMenu').classList.remove('open'); });
@@ -732,33 +706,15 @@ $('#restoreInput').addEventListener('change', e=>{ if(e.target.files?.[0]) resto
 $('#darkToggle').addEventListener('click', toggleDark);
 $('#logoutBtn').addEventListener('click', logout);
 
-const scheduleRender = (()=>{ let t=null; return ()=>{ clearTimeout(t); t=setTimeout(render,120); }; })();
 let searchTimeout;
 $('#searchInput').addEventListener('input', function() {
   clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    render();  // Trigger render after 500ms
-  }, 500);
+  searchTimeout = setTimeout(() => { render(); }, 500);
 });
-
-
 $('#filterSelect').addEventListener('change', render);
 $('#sortSelect').addEventListener('change', render);
 
-// Function to validate email format
-function isValidEmail(email) {
-  const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-  return regex.test(email);
-}
-
-// Client form submission handler
-// Function to check for duplicates
-function isDuplicateClient(email, phone) {
-  const clients = getClients();
-  return clients.some(client => client.email === email || client.phone === phone);
-}
-
-$('#clientForm').addEventListener('submit', e => {
+$('#clientForm').addEventListener('submit', async e => {
   e.preventDefault();
   const name = $('#clientName').value.trim();
   const email = $('#clientEmail').value.trim();
@@ -766,62 +722,26 @@ $('#clientForm').addEventListener('submit', e => {
   const address = $('#clientAddress').value.trim();
   const startDate = $('#startDate').value;
   const plan = $('#clientPlan').value.trim();
-  
-  // Check if the client already exists
-  if (isDuplicateClient(email, phone)) {
-    alert('Client with this email or phone number already exists.');
-    return;
-  }
-  
   if (!name || !startDate) return;
 
-  const list = getClients();
-  list.push({ name, email, phone, address, startDate, plan, notes: '' });
-  setClients(list);
+  // No duplicates check across devices here; Firestore rules or extra query can enforce if you want strict uniqueness.
+  await addClient({ name, email, phone, address, startDate, plan, notes: '' });
   e.target.reset();
-  render();
 });
 
-$('#saveTpl').addEventListener('click', ()=>{
-  setTpl($('#tplSubject').value, $('#tplBody').value);
-  alert('Template saved!');
-});
+$('#saveTpl').addEventListener('click', saveTplClick);
 
-// Fetch clients from the back-end API
-fetch('/api/clients')
-  .then(response => response.json())
-  .then(clients => setClients(clients));
-
-// Save a new client
-function saveClient(newClient) {
-  fetch('/api/clients', {
-    method: 'POST',
-    body: JSON.stringify(newClient),
-    headers: { 'Content-Type': 'application/json' },
-  })
-    .then(response => response.json())
-    .then(savedClient => {
-      alert('Client saved');
-      render();
-    });
+/* ======== Simple dialog helpers (kept) ======== */
+function showDialog(title, bodyNode, onOk, okLabel='OK', cancelLabel='Cancel'){
+  $('#dialogTitle').textContent = title;
+  const body = $('#dialogBody'); body.innerHTML=''; if(bodyNode) body.appendChild(bodyNode);
+  $('#dialogBackdrop').classList.add('open');
+  $('#dialogOk').textContent = okLabel; $('#dialogCancel').textContent = cancelLabel;
+  const okHandler = async ()=>{ if(typeof onOk === 'function'){ const res = await onOk(); if(res === false) return; } closeDialog(); };
+  $('#dialogOk').onclick = okHandler;
+  $('#dialogCancel').onclick = closeDialog;
 }
-
-(function boot(){
-// Save data to localStorage
-localStorage.setItem('dataKey', JSON.stringify(data));
-
-// Retrieve data from localStorage
-const data = JSON.parse(localStorage.getItem('dataKey'));
-  if(saved && users[saved] && !users[saved].isAdmin){
-    currentUser = saved;
-    setTheme(!!users[currentUser].prefs?.darkMode);
-    $('#whoami').textContent = `${currentUser} • ${users[currentUser].email}`;
-    $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide'); render();
-  } else {
-    setTheme(false);
-  }
-})();
+function closeDialog(){ $('#dialogBackdrop').classList.remove('open'); }
 </script>
 </body>
 </html>
-
