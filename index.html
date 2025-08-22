@@ -4,7 +4,32 @@
   <meta charset="UTF-8" />
   <title>Client List Reminders — User</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- ✅ Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js"></script>
+
+  <!-- ✅ Firebase Initialization -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD8KyIuPpW4w9vwEwfzemhxYYp2nJy4Io8",
+      authDomain: "client-management-f6060.firebaseapp.com",
+      projectId: "client-management-f6060",
+      storageBucket: "client-management-f6060.firebasestorage.app",
+      messagingSenderId: "267148533200",
+      appId: "1:267148533200:web:59f74ba662122c81c22dd5",
+      measurementId: "G-M6QEGME5SZ"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics(); // Optional
+  </script>
+  <meta charset="UTF-8" />
+  <title>Client List Reminders — User</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+  
     :root {
       --bg: #f6f7fb;
       --card: #ffffff;
