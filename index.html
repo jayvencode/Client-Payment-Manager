@@ -5,7 +5,7 @@
   <title>Client List Reminders — User</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- ✅ Firebase SDKs (Compat builds to keep your old `firebase.*` API) -->
+  <!-- ✅ Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -17,7 +17,7 @@
       apiKey: "AIzaSyD8KyIuPpW4w9vwEwfzemhxYYp2nJy4Io8",
       authDomain: "client-management-f6060.firebaseapp.com",
       projectId: "client-management-f6060",
-      storageBucket: "client-management-f6060.appspot.com", // ✅ fixed domain
+      storageBucket: "client-management-f6060.appspot.com",
       messagingSenderId: "267148533200",
       appId: "1:267148533200:web:59f74ba662122c81c22dd5",
       measurementId: "G-M6QEGME5SZ"
@@ -28,146 +28,81 @@
 
   <style>
     :root {
-      --bg: #f6f7fb;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #64748b;
-      --primary: #008CBA;
-      --primary-contrast: #ffffff;
-      --accent: #22c55e;
-      --warn: #f59e0b;
-      --danger: #ef4444;
-      --border: #e5e7eb;
-      --shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
-      --radius: 14px;
-      --pad: 14px;
+      --bg: #f6f7fb; --card: #fff; --text: #0f172a; --muted: #64748b;
+      --primary: #008CBA; --primary-contrast: #fff; --accent: #22c55e;
+      --warn: #f59e0b; --danger: #ef4444; --border: #e5e7eb;
+      --shadow: 0 10px 30px rgba(2,6,23,0.08); --radius:14px; --pad:14px;
     }
     [data-theme="dark"] {
-      --bg: #0b1220;
-      --card: #111a2c;
-      --text: #e5e7eb;
-      --muted: #9aa7bd;
-      --primary: #3b82f6;
-      --primary-contrast: #0b1220;
-      --accent: #22c55e;
-      --warn: #fbbf24;
-      --danger: #ef4444;
-      --border: #1f2a44;
-      --shadow: 0 10px 30px rgba(0,0,0,.5);
+      --bg:#0b1220; --card:#111a2c; --text:#e5e7eb; --muted:#9aa7bd;
+      --primary:#3b82f6; --primary-contrast:#0b1220; --accent:#22c55e;
+      --warn:#fbbf24; --danger:#ef4444; --border:#1f2a44; --shadow:0 10px 30px rgba(0,0,0,.5);
     }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0; padding: 16px;
-      background: var(--bg); color: var(--text);
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;
-      line-height: 1.45;
-    }
-    .container { max-width: 1100px; margin: 0 auto; }
-    h1,h2,h3 { margin: 0 0 10px; }
-    .muted { color: var(--muted); }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: calc(var(--pad) * 1.2);
-    }
-    .row { display: grid; gap: 10px; }
-    .topbar {
-      display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
-      margin-bottom: 14px;
-    }
-    .brand { font-weight: 800; letter-spacing:.3px; }
-    .btn, button {
-      display:inline-flex; align-items:center; justify-content:center; gap:8px;
-      padding:10px 12px; border:1px solid var(--border); border-radius:10px;
-      background: var(--card); color: var(--text); cursor:pointer;
-      transition: transform .06s ease, background .2s ease, border-color .2s ease;
-    }
-    .btn:hover { transform: translateY(-1px); }
-    .btn.primary { background:var(--primary); color:var(--primary-contrast); border-color:transparent; }
-    .btn.success { background:var(--accent); color:#fff; border-color:transparent; }
-    .btn.danger { background:var(--danger); color:#fff; border-color:transparent; }
-    .btn.ghost { background: transparent; }
-    input, select, textarea {
-      width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px;
-      background: var(--card); color: var(--text); outline:none;
-    }
-    textarea { min-height: 70px; resize: vertical; }
-    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
-    .menu-wrap { position:relative; }
-    .menu {
-      position:absolute; top: calc(100% + 6px); right:0; min-width:260px; z-index:10;
-      background: var(--card); border:1px solid var(--border); border-radius:12px; box-shadow: var(--shadow);
-      padding:8px; display:none;
-    }
-    .menu.open { display:block; }
-    .menu .item { padding:10px; border-radius:10px; cursor:pointer; }
-    .menu .item:hover { background: rgba(100,116,139,.16); }
-    .hide { display:none !important; }
-    .section-title { display:flex; justify-content:space-between; align-items:center; margin:14px 0 8px; font-weight:700; }
-    .list { display:grid; gap:8px; }
-    .client {
-      display:grid; grid-template-columns: 1fr auto; gap:10px; align-items:center;
-      border:1px solid var(--border); border-left:6px solid var(--primary);
-      border-radius:12px; padding:12px; background:var(--card);
-    }
-    .client.overdue { border-left-color: var(--danger); background: rgba(239,68,68,.08); }
-    .client.today { border-left-color: var(--warn); background: rgba(245,158,11,.10); }
-    .client.paid { border-left-color: var(--accent); background: rgba(34,197,94,.10); }
-    .info { display:grid; gap:6px; }
-    @media (min-width:900px){ .info{ grid-template-columns: 1.2fr 1fr 1fr 1fr; } }
-    details summary { cursor:pointer; user-select:none; }
-    .label { font-size:.78rem; color: var(--muted); }
-    .value { font-weight:600; }
-    .dialog-backdrop {
-      position: fixed; inset:0; background: rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; padding:16px;
-    }
-    .dialog-backdrop.open { display:flex; }
-    .dialog { max-width:520px; width:100%; }
-    .dialog .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
-    @media (max-width: 600px) {
-      .client { padding: 10px; font-size: 14px; }
-      .btn { width: 100%; padding: 15px; }
-    }
-    @media (min-width: 601px) and (max-width: 1024px) {
-      .client { padding: 15px; font-size: 16px; }
-      .btn { width: auto; }
-    }
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #3498db;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    *{box-sizing:border-box;}
+    html,body{height:100%;}
+    body{margin:0;padding:16px;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;line-height:1.45;}
+    .container{max-width:1100px;margin:0 auto;}
+    h1,h2,h3{margin:0 0 10px;}
+    .muted{color:var(--muted);}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:calc(var(--pad)*1.2);}
+    .row{display:grid;gap:10px;}
+    .topbar{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;margin-bottom:14px;}
+    .brand{font-weight:800;letter-spacing:.3px;}
+    .btn,button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);cursor:pointer;transition: transform .06s ease, background .2s ease, border-color .2s ease;}
+    .btn:hover{transform:translateY(-1px);}
+    .btn.primary{background:var(--primary);color:var(--primary-contrast);border-color:transparent;}
+    .btn.success{background:var(--accent);color:#fff;border-color:transparent;}
+    .btn.danger{background:var(--danger);color:#fff;border-color:transparent;}
+    .btn.ghost{background:transparent;}
+    input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);outline:none;}
+    textarea{min-height:70px;resize:vertical;}
+    input:focus,select:focus,textarea:focus{border-color:var(--primary);}
+    .menu-wrap{position:relative;}
+    .menu{position:absolute;top:calc(100%+6px);right:0;min-width:260px;z-index:10;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:8px;display:none;}
+    .menu.open{display:block;}
+    .menu .item{padding:10px;border-radius:10px;cursor:pointer;}
+    .menu .item:hover{background: rgba(100,116,139,.16);}
+    .hide{display:none !important;}
+    .section-title{display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px;font-weight:700;}
+    .list{display:grid;gap:8px;}
+    .client{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--border);border-left:6px solid var(--primary);border-radius:12px;padding:12px;background:var(--card);}
+    .client.overdue{border-left-color: var(--danger);background: rgba(239,68,68,.08);}
+    .client.today{border-left-color: var(--warn);background: rgba(245,158,11,.10);}
+    .client.paid{border-left-color: var(--accent);background: rgba(34,197,94,.10);}
+    .info{display:grid;gap:6px;}
+    @media (min-width:900px){.info{grid-template-columns:1.2fr 1fr 1fr 1fr;}}
+    details summary{cursor:pointer;user-select:none;}
+    .label{font-size:.78rem;color:var(--muted);}
+    .value{font-weight:600;}
+    .dialog-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;}
+    .dialog-backdrop.open{display:flex;}
+    .dialog{max-width:520px;width:100%;}
+    .dialog .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;}
+    @media(max-width:600px){.client{padding:10px;font-size:14px;}.btn{width:100%;padding:15px;}}
+    @media(min-width:601px) and (max-width:1024px){.client{padding:15px;font-size:16px;}.btn{width:auto;}}
+    .spinner{border:4px solid #f3f3f3;border-top:4px solid #3498db;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;}
+    @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="container">
-
     <!-- LOGIN -->
     <div id="loginView">
-      <div class="card" style="max-width: 520px; margin: 8vh auto;">
+      <div class="card" style="max-width:520px;margin:8vh auto;">
         <h1 style="text-align:center;">Client List Reminders</h1>
-        <p class="muted" style="text-align:center; margin-bottom:14px;">v.02</p>
-
+        <p class="muted" style="text-align:center;margin-bottom:14px;">v.02</p>
         <div class="row" style="gap:14px;">
           <div class="card">
             <h3>Login</h3>
-            <form id="loginForm" class="row" style="gap:10px; margin-top:8px;">
+            <form id="loginForm" class="row" style="gap:10px;margin-top:8px;">
               <input id="loginUsername" type="text" placeholder="Username" required />
               <input id="loginPassword" type="password" placeholder="Password" required />
               <button class="btn primary" type="submit">Login</button>
               <button id="forgotBtn" class="btn ghost" type="button">Forgot Password?</button>
             </form>
           </div>
-
           <div class="card">
             <h3>Create Account</h3>
             <button id="createAccountBtn" class="btn success" type="button">Create Account</button>
@@ -177,7 +112,7 @@
       </div>
     </div>
 
-    <div id="loadingSpinner" class="spinner" style="display:none; margin: 20px auto;"></div>
+    <div id="loadingSpinner" class="spinner" style="display:none;margin:20px auto;"></div>
   </div>
 
   <!-- Register Modal -->
@@ -198,8 +133,9 @@
     </div>
   </div>
 
-  <!-- APP -->
+  <!-- APP VIEW -->
   <div id="appView" class="hide">
+    <!-- Topbar & Menu -->
     <div class="topbar">
       <div class="brand">📒 Client List Reminders</div>
       <div class="muted" id="whoami"></div>
@@ -208,7 +144,7 @@
         <div id="moreMenu" class="menu">
           <div class="item" id="exportExcel">📥 Export to Excel</div>
           <div class="item" id="backupBtn">💾 Backup (download .json)</div>
-          <label class="item" for="restoreInput" style="display:block; cursor:pointer;">📤 Restore (upload .json)</label>
+          <label class="item" for="restoreInput" style="display:block;cursor:pointer;">📤 Restore (upload .json)</label>
           <input id="restoreInput" type="file" accept=".json,application/json" class="hide" />
           <div class="item" id="darkToggle">🌓 Toggle Dark</div>
           <div class="item" id="logoutBtn">🚪 Logout</div>
@@ -216,11 +152,11 @@
       </div>
     </div>
 
-    <!-- Settings -->
+    <!-- Settings & Email Template -->
     <div class="card" style="margin-bottom:12px;">
       <details>
         <summary><strong>✉️ Email Reminder Template</strong> <span class="muted">(per user)</span></summary>
-        <div class="row" style="margin-top:10px; grid-template-columns: 1fr;">
+        <div class="row" style="margin-top:10px;grid-template-columns:1fr;">
           <input id="tplSubject" type="text" placeholder="Subject (e.g., Payment Reminder for {{name}})" />
           <textarea id="tplBody" placeholder="Body. Use {{name}}, {{next}}, {{plan}} tokens."></textarea>
           <button id="saveTpl" class="btn">Save Template</button>
@@ -231,7 +167,7 @@
 
     <!-- Add Client -->
     <div class="card" style="margin-bottom:12px;">
-      <form id="clientForm" class="row" style="grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr 1fr auto;">
+      <form id="clientForm" class="row" style="grid-template-columns:1.2fr 1fr 1fr 1fr 1fr 1fr auto;">
         <input type="text" id="clientName" placeholder="Client Name" required />
         <input type="email" id="clientEmail" placeholder="Client Email" />
         <input type="text" id="clientPhone" placeholder="Contact No." />
