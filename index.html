@@ -398,20 +398,32 @@ async function savePrefs(patch){
 }
 
 /* ======== UI Actions kept from your code, but now using Firestore ======== */
-function render(){
+function render() {
   const dueWrap = $('#dueList'), paidWrap = $('#paidList');
-  dueWrap.innerHTML=''; paidWrap.innerHTML='';
 
-  let list = getClients().map((c,i)=>({ ...c, _index:i, _next: nextPaymentFrom(new Date(c.startDate)) }));
+  // ✅ Save which details are currently open
+  const openStates = {};
+  $$('details').forEach(d => {
+    const idx = d.querySelector('input,textarea')?.dataset.i;
+    if(idx) openStates[idx] = d.open;
+  });
 
+  dueWrap.innerHTML = '';
+  paidWrap.innerHTML = '';
+
+  let list = getClients().map((c,i) => ({ ...c, _index:i, _next: nextPaymentFrom(new Date(c.startDate)) }));
+
+  // --- Search ---
   const q = $('#searchInput').value.trim().toLowerCase();
   if(q) list = list.filter(c => (c.name||'').toLowerCase().includes(q));
 
+  // --- Filter ---
   const filt = $('#filterSelect').value;
   if(filt==='due-month') list = list.filter(c => isThisMonth(c._next));
   if(filt==='overdue') list = list.filter(c => isOverdue(c._next));
   if(filt==='upcoming') list = list.filter(c => !isThisMonth(c._next) && !isOverdue(c._next));
 
+  // --- Sort ---
   const sort = $('#sortSelect').value;
   const n = v => (parseFloat((v||'').replace(/[^0-9.]/g,''))||0);
   const cmp = {
@@ -425,7 +437,8 @@ function render(){
   list.sort(cmp);
 
   let countThis=0, countLater=0;
-  list.forEach(c=>{
+
+  list.forEach(c => {
     const nextStr = formatDate(c._next);
     const dueToday = isToday(c._next);
     const inThisMonth = isThisMonth(c._next);
@@ -433,11 +446,11 @@ function render(){
 
     const card = document.createElement('div');
     card.className = 'client';
-    if (c.justPaid) card.classList.add('paid');
-    if (dueToday) card.classList.add('today');
-    if (overdue) card.classList.add('overdue');
+    if(c.justPaid) card.classList.add('paid');
+    if(dueToday) card.classList.add('today');
+    if(overdue) card.classList.add('overdue');
 
-    const details = `
+    const detailsHTML = `
       <details>
         <summary class="muted">More info</summary>
         <div class="row" style="margin-top:8px; grid-template-columns: 1fr 1fr;">
@@ -460,24 +473,37 @@ function render(){
         <button class="btn" data-action="email" data-i="${c._index}">✉️ Email</button>
         <button class="btn danger del" data-i="${c._index}">🗑️ Delete</button>
       </div>
-      ${details}
+      ${detailsHTML}
     `;
-    if(inThisMonth){ dueWrap.appendChild(card); countThis++; } else { paidWrap.appendChild(card); countLater++; }
+
+    // ✅ Restore details open state
+    const detailsEl = card.querySelector('details');
+    if(detailsEl && openStates[c._index]) detailsEl.open = true;
+
+    if(inThisMonth){ dueWrap.appendChild(card); countThis++; }
+    else { paidWrap.appendChild(card); countLater++; }
   });
+
   $('#countThisMonth').textContent = countThis;
   $('#countLater').textContent = countLater;
 
-  // Bind actions
+  // --- Debounced input bindings ---
+  function debounce(fn, delay=400){
+    let timer;
+    return (...args)=>{ clearTimeout(timer); timer = setTimeout(()=>fn(...args), delay); };
+  }
+
   $$('.btn.success.paid').forEach(b=>b.addEventListener('click', onMarkPaid));
   $$('.btn.danger.del').forEach(b=>b.addEventListener('click', onDelete));
   $$('.inp.date').forEach(i=>i.addEventListener('change', onEditDate));
-  $$('.inp.plan').forEach(i=>i.addEventListener('input', onEditPlan));
-  $$('.inp.email').forEach(i=>i.addEventListener('input', onEditEmail));
-  $$('.inp.phone').forEach(i=>i.addEventListener('input', onEditPhone));
-  $$('.inp.addr').forEach(i=>i.addEventListener('input', onEditAddr));
-  $$('.inp.notes').forEach(i=>i.addEventListener('input', onEditNotes));
+  $$('.inp.plan').forEach(i=>i.addEventListener('input', debounce(onEditPlan)));
+  $$('.inp.email').forEach(i=>i.addEventListener('input', debounce(onEditEmail)));
+  $$('.inp.phone').forEach(i=>i.addEventListener('input', debounce(onEditPhone)));
+  $$('.inp.addr').forEach(i=>i.addEventListener('input', debounce(onEditAddr)));
+  $$('.inp.notes').forEach(i=>i.addEventListener('input', debounce(onEditNotes)));
   $$('button[data-action="email"]').forEach(b=>b.addEventListener('click', onEmail));
 }
+
 
 /* ======== Client item handlers (Firestore updates) ======== */
 async function onMarkPaid(e){
