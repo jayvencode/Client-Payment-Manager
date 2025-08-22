@@ -77,11 +77,49 @@
     .dialog-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;}
     .dialog-backdrop.open{display:flex;}
     .dialog{max-width:520px;width:100%;}
-    .dialog .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;}
-    @media(max-width:600px){.client{padding:10px;font-size:14px;}.btn{width:100%;padding:15px;}}
-    @media(min-width:601px) and (max-width:1024px){.client{padding:15px;font-size:16px;}.btn{width:auto;}}
-    .spinner{border:4px solid #f3f3f3;border-top:4px solid #3498db;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;}
-    @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+  .dialog .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;}
+
+@media(max-width:600px){
+  .client{padding:10px;font-size:14px;}
+  .btn{width:100%;padding:15px;}
+}
+
+/* Tablet */
+@media(min-width:601px) and (max-width:1024px){
+  .client{padding:15px;font-size:16px;}
+  .btn{width:auto;}
+}
+
+/* ===== Small action buttons for client cards ===== */
+.client .actions .btn {
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+@media(max-width:600px){
+  .client .actions .btn {
+    padding: 4px 6px;
+    font-size: 0.75rem;
+  }
+}
+
+@media(min-width:601px) and (max-width:900px){
+  .client .actions .btn {
+    padding: 5px 7px;
+    font-size: 0.8rem;
+  }
+}
+
+@media(min-width:901px){
+  .client .actions .btn {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
+}
+
+.spinner{border:4px solid #f3f3f3;border-top:4px solid #3498db;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
