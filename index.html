@@ -120,6 +120,17 @@
 .spinner{border:4px solid #f3f3f3;border-top:4px solid #3498db;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;}
 @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
 
+ /* ✅ Fix calendar button dark mode issue */
+  input[type="date"] {
+    color-scheme: light !important; /* force light theme calendar */
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1); /* make icon visible on dark mode */
+    cursor: pointer;
+  }
+  
+  
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -509,7 +520,6 @@ function render(){
   $$('.btn.success.paid').forEach(b=>b.addEventListener('click', onMarkPaid));
   $$('.btn.danger.del').forEach(b=>b.addEventListener('click', onDelete));
   $$('.inp.date').forEach(i=>i.addEventListener('change', onEditDate));
-$$('.inp.date').forEach(i=>i.addEventListener('change', onEditDate));
 $$('.inp.plan').forEach(i=>i.addEventListener('blur', onEditPlan));
 $$('.inp.email').forEach(i=>i.addEventListener('blur', onEditEmail));
 $$('.inp.phone').forEach(i=>i.addEventListener('blur', onEditPhone));
