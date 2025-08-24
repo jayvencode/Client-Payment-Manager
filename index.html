@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark"><!-- Default to DARK on first load -->
 <head>
   <meta charset="UTF-8" />
   <title>Client List Reminders — User</title>
@@ -97,6 +97,10 @@
     .mb-12 { margin-bottom: 12px; }
     .center { text-align: center; }
 
+    /* --- NEW: stacked fields for the Add Client form --- */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .form-actions-right { display:flex; gap:8px; justify-content:flex-end; }
+
     /* footer */
     footer { margin-top: 28px; text-align: center; color: var(--muted); font-size: 0.9rem; }
   </style>
@@ -176,6 +180,8 @@
           <label class="item" for="restoreInput" style="display:block;cursor:pointer;">📤 Restore (upload .json)</label>
           <input id="restoreInput" type="file" accept=".json,application/json" class="hide" />
           <div class="item" id="darkToggle">🌓 Toggle Dark</div>
+          <!-- NEW: informational note under toggle -->
+          <div class="item muted" style="cursor:default;">Dark mode is enabled by default.</div>
           <div class="item" id="logoutBtn">🚪 Logout</div>
         </div>
       </div>
@@ -194,27 +200,58 @@
       </details>
     </div>
 
-    <!-- Add Client (toggleable) -->
+    <!-- ===================== ADD CLIENT (reworked) ===================== -->
     <div class="card mb-12" id="addClientCard">
+      <!-- Header row with the toggle button on the RIGHT -->
       <div class="row" style="grid-template-columns:1fr auto; align-items:center;">
-        <h3 style="margin:0;">Clients</h3>
-        <button id="toggleAddClient" class="btn primary" type="button" aria-expanded="false">+ Add Client</button>
+        <h3 style="margin:0;">Add Client</h3>
+        <button id="toggleAddForm" class="btn primary" type="button">+ Add Client</button>
       </div>
 
-      <!-- Hidden form appears only after clicking the button -->
-      <form id="clientForm" class="row hide" style="margin-top:10px; grid-template-columns:1.2fr 1fr 1fr 1fr 1fr 1fr auto;">
-        <input type="text" id="clientName" placeholder="Client Name" required />
-        <input type="email" id="clientEmail" placeholder="Client Email" />
-        <input type="text" id="clientPhone" placeholder="Contact No." />
-        <input type="text" id="clientAddress" placeholder="Address" />
-        <input type="date" id="startDate" required />
-        <input type="text" id="clientPlan" placeholder="Plan (e.g. $50)" required />
-        <div style="display:flex; gap:8px; align-items:center;">
-          <button class="btn success" type="submit">Save</button>
-          <button id="cancelAddClient" class="btn ghost" type="button">Cancel</button>
+      <!--
+        NEW: The actual form is HIDDEN by default.
+        - We show it only when the "+ Add Client" button is clicked.
+        - Stacked layout (label above input) to match your requested order.
+      -->
+      <form id="clientForm" class="row hide" style="margin-top:10px; grid-template-columns:1fr;">
+        <div class="field">
+          <label class="label" for="clientName">Client name</label>
+          <input type="text" id="clientName" placeholder="e.g., james Doe" required />
+        </div>
+
+        <div class="field">
+          <label class="label" for="clientEmail">Client email</label>
+          <input type="email" id="clientEmail" placeholder="e.g., jamesfloyd@example.com" />
+        </div>
+
+        <div class="field">
+          <label class="label" for="clientPhone">Contact no.</label>
+          <input type="text" id="clientPhone" placeholder="e.g., 09456789102" />
+        </div>
+
+        <div class="field">
+          <label class="label" for="clientAddress">Address</label>
+          <input type="text" id="clientAddress" placeholder="e.g., 123 Main St" />
+        </div>
+
+        <div class="field">
+          <label class="label" for="startDate">Date</label>
+          <input type="date" id="startDate" required />
+        </div>
+
+        <div class="field">
+          <label class="label" for="clientPlan">Plan</label>
+          <input type="text" id="clientPlan" placeholder="e.g., $50 (you can olso add text here)" required />
+        </div>
+
+        <!-- Actions aligned to the RIGHT inside the card -->
+        <div class="form-actions-right">
+          <button id="cancelAdd" class="btn" type="button">Cancel</button>
+          <button class="btn primary" type="submit">Add</button>
         </div>
       </form>
     </div>
+    <!-- =================== /ADD CLIENT (reworked) =================== -->
 
     <!-- Filters -->
     <div class="card mb-12">
@@ -342,7 +379,7 @@
           email,
           createdAt: serverTimestamp(),
           prefs: {
-            darkMode:false,
+            darkMode:false, // user can flip later; default display is still dark (see below)
             tplSubject:'Payment Reminder for {{name}}',
             tplBody:'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.'
           }
@@ -378,15 +415,18 @@
       clientsCache = [];
       currentProfile = null;
       signOut(auth);
+      // Keep app in DARK when logged out (your request)
+      setTheme(true);
       $('#appView').classList.add('hide');
       $('#loginView').classList.remove('hide');
-      setTheme(false);
       $('#loginForm').reset();
     }
 
     onAuthStateChanged(auth, async (user)=>{
       if(!user){
         $('#whoami').textContent = '';
+        // Ensure DARK on logged-out screens
+        setTheme(true);
         $('#loginView').classList.remove('hide');
         $('#appView').classList.add('hide');
         return;
@@ -396,7 +436,10 @@
       // Profile
       const profSnap = await getDoc(doc(db, 'users', user.uid));
       currentProfile = profSnap.exists() ? profSnap.data() : { email: user.email, prefs:{} };
-      setTheme(!!currentProfile?.prefs?.darkMode);
+
+      // If user has an explicit preference, respect it; otherwise stay in DARK by default
+      const hasPref = currentProfile?.prefs && ('darkMode' in currentProfile.prefs);
+      setTheme(hasPref ? !!currentProfile.prefs.darkMode : true);
 
       // show email only
       $('#whoami').textContent = currentProfile.email || user.email || '';
@@ -686,26 +729,26 @@
     $('#filterSelect').addEventListener('change', render);
     $('#sortSelect').addEventListener('change', render);
 
-    // === Add Client (toggle UI) ===
-    const addBtn = $('#toggleAddClient');
+    // ==== NEW: Add Client show/hide logic + submit ====
     const addForm = $('#clientForm');
-    const cancelAdd = $('#cancelAddClient');
+    const toggleAddBtn = $('#toggleAddForm');
+    const cancelAddBtn = $('#cancelAdd');
 
-    function setAddForm(open){
-      addForm.classList.toggle('hide', !open);
-      addBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      addBtn.textContent = open ? 'Close' : '+ Add Client';
-      if (open) addForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    addBtn.addEventListener('click', ()=> setAddForm(addForm.classList.contains('hide')));
-    cancelAdd.addEventListener('click', ()=>{
+    // Show/hide the stacked form inside the card
+    toggleAddBtn.addEventListener('click', ()=>{
+      addForm.classList.toggle('hide');
+      if(!addForm.classList.contains('hide')){
+        $('#clientName').focus();
+      }
+    });
+    // Cancel hides the form and clears it
+    cancelAddBtn.addEventListener('click', ()=>{
       addForm.reset();
-      setAddForm(false);
+      addForm.classList.add('hide');
     });
 
-    // Add client (Save)
-    $('#clientForm').addEventListener('submit', async e => {
+    // Add client (same logic as before, but now from the hidden form)
+    addForm.addEventListener('submit', async e => {
       e.preventDefault();
       const name = $('#clientName').value.trim();
       const email = $('#clientEmail').value.trim();
@@ -715,9 +758,10 @@
       const plan = $('#clientPlan').value.trim();
       if (!name || !startDate) return;
       await addClient({ name, email, phone, address, startDate, plan, notes: '' });
-      e.target.reset();
-      setAddForm(false);
+      addForm.reset();
+      addForm.classList.add('hide');
     });
+    // ==== /NEW Add Client ====
 
     // Event delegation for lists (clicks)
     document.addEventListener('click', async (e)=>{
@@ -752,10 +796,8 @@
     // Save template
     $('#saveTpl').addEventListener('click', saveTplClick);
 
-    // ===================== Firestore Rules (update suggestion) =====================
+    // ===================== Firestore Rules (reference) =====================
     /*
-    With email-only auth and no "usernames" collection, a minimal rule set could be:
-
     rules_version = '2';
     service cloud.firestore {
       match /databases/{database}/documents {
