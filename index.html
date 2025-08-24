@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark"><!-- Default to DARK on first load -->
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <title>Client List Reminders — User</title>
+  <title>Client List Reminders — Improved</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Excel export -->
@@ -14,47 +14,50 @@
       --primary: #008CBA; --primary-contrast: #fff; --accent: #22c55e;
       --warn: #f59e0b; --danger: #ef4444; --border: #e5e7eb;
       --shadow: 0 10px 30px rgba(2,6,23,0.08); --radius:14px; --pad:14px;
+      --focus: 0 0 0 3px rgba(59,130,246,.45);
     }
     [data-theme="dark"] {
       --bg:#0b1220; --card:#111a2c; --text:#e5e7eb; --muted:#9aa7bd;
       --primary:#3b82f6; --primary-contrast:#0b1220; --accent:#22c55e;
       --warn:#fbbf24; --danger:#ef4444; --border:#1f2a44; --shadow:0 10px 30px rgba(0,0,0,.5);
+      --focus: 0 0 0 3px rgba(59,130,246,.55);
     }
     *{box-sizing:border-box;}
     html,body{height:100%;}
     body{margin:0;padding:16px;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;line-height:1.45;}
     .container{max-width:1100px;margin:0 auto;}
     h1,h2,h3{margin:0 0 10px;}
-    .muted{color:var(--muted);}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:calc(var(--pad)*1.2);}
+    .muted{color:var(--muted);}    
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:calc(var(--pad)*1.2);}    
     .row{display:grid;gap:10px;}
     .topbar{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;margin-bottom:14px;}
     .brand{font-weight:800;letter-spacing:.3px;}
     .btn,button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);cursor:pointer;transition: transform .06s ease, background .2s ease, border-color .2s ease;}
-    .btn:hover{transform:translateY(-1px);}
+    .btn:hover{transform:translateY(-1px);}    
+    .btn:focus-visible{outline:none;box-shadow:var(--focus);}    
     .btn.primary{background:var(--primary);color:var(--primary-contrast);border-color:transparent;}
     .btn.success{background:var(--accent);color:#fff;border-color:transparent;}
     .btn.danger{background:var(--danger);color:#fff;border-color:transparent;}
     .btn.ghost{background:transparent;}
     input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);outline:none;}
     textarea{min-height:70px;resize:vertical;}
-    input:focus,select:focus,textarea:focus{border-color:var(--primary);}
+    input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:var(--focus);}    
     .menu-wrap{position:relative;}
-    .menu{position:absolute;top:calc(100%+6px);right:0;min-width:260px;z-index:10;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:8px;display:none;}
+    .menu{position:absolute;top:calc(100% + 6px);right:0;min-width:260px;z-index:10;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:8px;display:none;}
     .menu.open{display:block;}
     .menu .item{padding:10px;border-radius:10px;cursor:pointer;}
-    .menu .item:hover{background: rgba(100,116,139,.16);}
+    .menu .item:hover{background: rgba(100,116,139,.16);}    
     .hide{display:none !important;}
     .section-title{display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px;font-weight:700;}
     .list{display:grid;gap:8px;}
-    .client{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--border);border-left:6px solid var(--primary);border-radius:12px;padding:12px;background:var(--card);}
-    .client.overdue{border-left-color: var(--danger);background: rgba(239,68,68,.08);}
-    .client.today{border-left-color: var(--warn);background: rgba(245,158,11,.10);}
-    .client.paid{border-left-color: var(--accent);background: rgba(34,197,94,.10);}
+    .client{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--border);border-left:6px solid var(--primary);border-radius:12px;padding:12px;background:var(--card);}    
+    .client.overdue{border-left-color: var(--danger);background: rgba(239,68,68,.08);}    
+    .client.today{border-left-color: var(--warn);background: rgba(245,158,11,.10);}    
+    .client.paid{border-left-color: var(--accent);background: rgba(34,197,94,.10);}    
     .info{display:grid;gap:6px;}
     @media (min-width:900px){.info{grid-template-columns:1.2fr 1fr 1fr 1fr;}}
     details summary{cursor:pointer;user-select:none;}
-    .label{font-size:.78rem;color:var(--muted);}
+    .label{font-size:.78rem;color:var(--muted);}    
     .value{font-weight:600;}
     .dialog-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;}
     .dialog-backdrop.open{display:flex;}
@@ -76,14 +79,14 @@
     @media(min-width:601px) and (max-width:900px){ .client .actions .btn { padding: 5px 7px; font-size: 0.8rem; } }
     @media(min-width:901px){ .client .actions .btn { padding: 6px 10px; font-size: 0.9rem; } }
 
-    .spinner{border:4px solid #f3f3f3;border-top:4px solid #3498db;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;}
+    .spinner{border:4px solid #f3f3f3;border-top:4px solid #3498db;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;margin:20px auto;}
     @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
 
-/* Fix calendar button dark mode issue */
+    /* Fix calendar button dark mode issue */
     input[type="date"] { color-scheme: light !important; }
     input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
-/* Make client info readable on small screens */
+    /* Make client info readable on small screens */
     @media (max-width: 600px) {
       .client .info { display: block; }
       .client .info > div { margin-bottom: 10px; }
@@ -97,7 +100,7 @@
     .mb-12 { margin-bottom: 12px; }
     .center { text-align: center; }
 
-    /* --- NEW: stacked fields for the Add Client form --- */
+    /* stacked fields for the Add Client form */
     .field { display: flex; flex-direction: column; gap: 6px; }
     .form-actions-right { display:flex; gap:8px; justify-content:flex-end; }
 
@@ -111,11 +114,10 @@
     <div id="loginView">
       <div class="card" style="max-width:520px;margin:8vh auto;">
         <h1 class="center">Client List Reminders</h1>
-        <p class="muted center" style="margin-bottom:14px;">v.03 (modular)</p>
+        <p class="muted center" style="margin-bottom:14px;">v.04 (improved)</p>
         <div class="row" style="gap:14px;">
           <div class="card">
             <h3>Login</h3>
-            <!-- email-only login -->
             <form id="loginForm" class="row" style="gap:10px;margin-top:8px;">
               <input id="loginEmail" type="email" placeholder="Email" autocomplete="username" required />
               <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password" required />
@@ -132,17 +134,16 @@
       </div>
     </div>
 
-    <div id="loadingSpinner" class="spinner" style="display:none;margin:20px auto;"></div>
+    <div id="loadingSpinner" class="spinner" style="display:none;"></div>
   </div>
 
   <!-- Register Modal -->
   <div id="registerModal" class="dialog-backdrop" aria-hidden="true">
-    <div class="dialog card">
-      <h3>Create Account</h3>
-      <!-- signup asks ONLY for email + password -->
+    <div class="dialog card" role="dialog" aria-modal="true" aria-labelledby="registerTitle">
+      <h3 id="registerTitle">Create Account</h3>
       <form id="registerForm" class="row" style="gap:10px;">
         <input id="regEmail" type="email" placeholder="Email (used for login & reset)" required />
-        <input id="regPassword" type="password" placeholder="Password" required />
+        <input id="regPassword" type="password" placeholder="Password" minlength="6" required />
         <div class="actions">
           <button class="btn success" type="submit">Create Account</button>
           <button class="btn ghost" type="button" data-close-modal="#registerModal">Cancel</button>
@@ -153,9 +154,8 @@
 
   <!-- Forgot Password Modal -->
   <div id="forgotModal" class="dialog-backdrop" aria-hidden="true">
-    <div class="dialog card">
-      <h3>Forgot Password</h3>
-      <!-- ask for email instead of username -->
+    <div class="dialog card" role="dialog" aria-modal="true" aria-labelledby="forgotTitle">
+      <h3 id="forgotTitle">Forgot Password</h3>
       <div class="row" style="gap:10px;">
         <input id="forgotEmail" type="email" placeholder="Enter your email" />
       </div>
@@ -171,16 +171,15 @@
     <!-- Topbar & Menu -->
     <div class="topbar">
       <div class="brand">📒 Client List Reminders</div>
-      <div class="muted" id="whoami"></div>
+      <div class="muted" id="whoami" aria-live="polite"></div>
       <div class="menu-wrap">
-        <button id="moreBtn" class="btn" aria-haspopup="true" aria-expanded="false">☰ Menu</button>
+        <button id="moreBtn" class="btn" aria-haspopup="true" aria-expanded="false" aria-label="Open menu">☰ Menu</button>
         <div id="moreMenu" class="menu" role="menu" aria-hidden="true">
           <div class="item" id="exportExcel">📥 Export to Excel</div>
           <div class="item" id="backupBtn">💾 Backup (download .json)</div>
           <label class="item" for="restoreInput" style="display:block;cursor:pointer;">📤 Restore (upload .json)</label>
           <input id="restoreInput" type="file" accept=".json,application/json" class="hide" />
           <div class="item" id="darkToggle">🌓 Toggle Dark</div>
-          <!-- NEW: informational note under toggle -->
           <div class="item muted" style="cursor:default;">Dark mode is enabled by default.</div>
           <div class="item" id="logoutBtn">🚪 Logout</div>
         </div>
@@ -200,58 +199,43 @@
       </details>
     </div>
 
-    <!-- ===================== ADD CLIENT (reworked) ===================== -->
+    <!-- Add Client -->
     <div class="card mb-12" id="addClientCard">
-      <!-- Header row with the toggle button on the RIGHT -->
       <div class="row" style="grid-template-columns:1fr auto; align-items:center;">
         <h3 style="margin:0;">Add Client</h3>
-        <button id="toggleAddForm" class="btn primary" type="button">+ Add Client</button>
+        <button id="toggleAddForm" class="btn primary" type="button" aria-controls="clientForm" aria-expanded="false">+ Add Client</button>
       </div>
-
-      <!--
-        NEW: The actual form is HIDDEN by default.
-        - We show it only when the "+ Add Client" button is clicked.
-        - Stacked layout (label above input) to match your requested order.
-      -->
       <form id="clientForm" class="row hide" style="margin-top:10px; grid-template-columns:1fr;">
         <div class="field">
           <label class="label" for="clientName">Client name</label>
-          <input type="text" id="clientName" placeholder="e.g., james Doe" required />
+          <input type="text" id="clientName" placeholder="e.g., James Doe" required />
         </div>
-
         <div class="field">
           <label class="label" for="clientEmail">Client email</label>
           <input type="email" id="clientEmail" placeholder="e.g., jamesfloyd@example.com" />
         </div>
-
         <div class="field">
           <label class="label" for="clientPhone">Contact no.</label>
-          <input type="text" id="clientPhone" placeholder="e.g., 09456789102" />
+          <input type="tel" id="clientPhone" inputmode="tel" pattern="^[0-9+()\-\s]{7,}$" placeholder="e.g., 09456789102" />
         </div>
-
         <div class="field">
           <label class="label" for="clientAddress">Address</label>
           <input type="text" id="clientAddress" placeholder="e.g., 123 Main St" />
         </div>
-
         <div class="field">
           <label class="label" for="startDate">Date</label>
           <input type="date" id="startDate" required />
         </div>
-
         <div class="field">
           <label class="label" for="clientPlan">Plan</label>
-          <input type="text" id="clientPlan" placeholder="e.g., $50 (you can olso add text here)" required />
+          <input type="text" id="clientPlan" placeholder="e.g., $50 (you can also add text here)" required />
         </div>
-
-        <!-- Actions aligned to the RIGHT inside the card -->
         <div class="form-actions-right">
           <button id="cancelAdd" class="btn" type="button">Cancel</button>
           <button class="btn primary" type="submit">Add</button>
         </div>
       </form>
     </div>
-    <!-- =================== /ADD CLIENT (reworked) =================== -->
 
     <!-- Filters -->
     <div class="card mb-12">
@@ -293,9 +277,9 @@
   <!-- FOOTER -->
   <footer>© 2025 Client Manager. All Rights Reserved.</footer>
 
-  <!-- Generic Dialog (kept for future use) -->
-  <div id="dialogBackdrop" class="dialog-backdrop">
-    <div class="dialog card">
+  <!-- Generic Dialog -->
+  <div id="dialogBackdrop" class="dialog-backdrop" aria-hidden="true">
+    <div class="dialog card" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
       <h3 id="dialogTitle">Dialog</h3>
       <div id="dialogBody" class="row"></div>
       <div class="actions">
@@ -312,7 +296,7 @@
     import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {
       getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, deleteDoc,
-      onSnapshot, serverTimestamp, writeBatch, query, orderBy
+      onSnapshot, serverTimestamp, writeBatch, query, orderBy, enableIndexedDbPersistence
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 
@@ -330,18 +314,34 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     try { if (await isSupported()) getAnalytics(app); } catch(_) {}
+    try { await enableIndexedDbPersistence(db); } catch(_) {}
 
     // ===================== Utils & State =====================
     const $  = s => document.querySelector(s);
     const $$ = s => Array.from(document.querySelectorAll(s));
     const today0 = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
-    function formatDate(d){ return d.toISOString().split('T')[0]; }
+    const toYMD = d => d.toISOString().split('T')[0];
+    function formatDate(d){ return toYMD(d); }
     function setTheme(d){ document.documentElement.setAttribute('data-theme', d?'dark':'light'); }
     function escapeHtml(s=''){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]))}
     function escapeAttr(s=''){return escapeHtml(s)}
     function showSpinner(show){ $('#loadingSpinner').style.display = show ? 'block' : 'none'; }
 
-    // Fast monthly advance without long loops
+    // Friendly auth error mapping
+    function mapAuthError(err){
+      const code = err?.code || '';
+      const map = {
+        'auth/email-already-in-use':'That email is already registered.',
+        'auth/invalid-email':'Please enter a valid email address.',
+        'auth/weak-password':'Password should be at least 6 characters.',
+        'auth/user-not-found':'No account found with that email.',
+        'auth/wrong-password':'Incorrect password. Try again.',
+        'auth/too-many-requests':'Too many attempts. Please try later.'
+      };
+      return map[code] || 'Something went wrong. Please try again.';
+    }
+
+    // Advance to the next payment date >= today (handles long overdue)
     function nextPaymentFrom(startDate){
       const now = today0();
       const next = new Date(startDate);
@@ -369,28 +369,25 @@
     async function register(email, password){
       email = (email||'').trim();
       if(!email || !password) return alert('Please fill email and password.');
-
       showSpinner(true);
       try{
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         const uid = cred.user.uid;
-
         const profile = {
           email,
           createdAt: serverTimestamp(),
           prefs: {
-            darkMode:false, // user can flip later; default display is still dark (see below)
+            darkMode:false,
             tplSubject:'Payment Reminder for {{name}}',
             tplBody:'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.'
           }
         };
         await setDoc(doc(db, 'users', uid), profile);
-
         alert('Account created! You can now login.');
         closeModal('#registerModal');
       } catch(err){
         console.error(err);
-        alert(err.message || 'Could not create account.');
+        alert(mapAuthError(err));
       } finally {
         showSpinner(false);
       }
@@ -404,7 +401,7 @@
         await signInWithEmailAndPassword(auth, email, password);
       } catch(err){
         console.error(err);
-        alert('Check your email or password.');
+        alert(mapAuthError(err));
       } finally {
         showSpinner(false);
       }
@@ -415,7 +412,6 @@
       clientsCache = [];
       currentProfile = null;
       signOut(auth);
-      // Keep app in DARK when logged out (your request)
       setTheme(true);
       $('#appView').classList.add('hide');
       $('#loginView').classList.remove('hide');
@@ -425,7 +421,6 @@
     onAuthStateChanged(auth, async (user)=>{
       if(!user){
         $('#whoami').textContent = '';
-        // Ensure DARK on logged-out screens
         setTheme(true);
         $('#loginView').classList.remove('hide');
         $('#appView').classList.add('hide');
@@ -433,23 +428,18 @@
       }
       currentUser = user;
 
-      // Profile
       const profSnap = await getDoc(doc(db, 'users', user.uid));
       currentProfile = profSnap.exists() ? profSnap.data() : { email: user.email, prefs:{} };
 
-      // If user has an explicit preference, respect it; otherwise stay in DARK by default
       const hasPref = currentProfile?.prefs && ('darkMode' in currentProfile.prefs);
       setTheme(hasPref ? !!currentProfile.prefs.darkMode : true);
 
-      // show email only
       $('#whoami').textContent = currentProfile.email || user.email || '';
 
-      // Prefill template
       const p = currentProfile.prefs || {};
       $('#tplSubject').value = p.tplSubject || 'Payment Reminder for {{name}}';
       $('#tplBody').value    = p.tplBody || 'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.';
 
-      // Subscribe to clients
       if(unsubClients) unsubClients();
       const qClients = query(collection(db, 'users', user.uid, 'clients'), orderBy('name'));
       unsubClients = onSnapshot(qClients, (snap)=>{
@@ -489,7 +479,7 @@
       currentProfile = next;
     }
 
-    // ===================== Render =====================
+    // ===================== Render (fast path with fragment) =====================
     function render(){
       const dueWrap = $('#dueList'), paidWrap = $('#paidList');
       dueWrap.innerHTML=''; paidWrap.innerHTML='';
@@ -517,6 +507,9 @@
       list.sort(cmp);
 
       let countThis=0, countLater=0;
+      const dueFrag = document.createDocumentFragment();
+      const paidFrag = document.createDocumentFragment();
+
       list.forEach(c=>{
         const nextStr = formatDate(c._next);
         const dueToday = isToday(c._next);
@@ -528,7 +521,6 @@
         if (c.justPaid) card.classList.add('paid');
         if (dueToday) card.classList.add('today');
         if (overdue) card.classList.add('overdue');
-
         card.dataset.i = String(c._index);
 
         const details = `
@@ -556,8 +548,10 @@
           </div>
           ${details}
         `;
-        if(inThisMonth){ dueWrap.appendChild(card); countThis++; } else { paidWrap.appendChild(card); countLater++; }
+        if(inThisMonth){ dueFrag.appendChild(card); countThis++; } else { paidFrag.appendChild(card); countLater++; }
       });
+      dueWrap.appendChild(dueFrag);
+      paidWrap.appendChild(paidFrag);
       $('#countThisMonth').textContent = countThis;
       $('#countLater').textContent = countLater;
     }
@@ -565,8 +559,11 @@
     // ===================== Handlers (Event Delegation) =====================
     async function onMarkPaid(i){
       const item = getClients()[i]; if(!item) return;
-      if(!confirm('Mark as paid and move next payment by 1 month?')) return;
-      const d = new Date(item.startDate); d.setMonth(d.getMonth()+1);
+      if(!confirm('Mark as paid and move next payment to the next future month?')) return;
+      let d = new Date(item.startDate); d.setHours(0,0,0,0);
+      // Roll forward until next >= today
+      const today = today0();
+      do { d.setMonth(d.getMonth()+1); } while (d < today);
       await updateClient(item.id, { startDate: formatDate(d) });
     }
     async function onDelete(i){
@@ -574,9 +571,19 @@
       if (!confirm(`Delete ${item.name || 'this client'}? This cannot be undone.`)) return;
       await deleteClient(item.id);
     }
+
+    // Debounced field update to reduce rapid writes
+    const debouncers = new Map();
+    function debounceKey(key, fn, ms=400){
+      clearTimeout(debouncers.get(key));
+      const t = setTimeout(fn, ms);
+      debouncers.set(key, t);
+    }
+
     async function onEdit(i, field, value){
       const item = getClients()[i]; if(!item) return;
-      await updateClient(item.id, { [field]: value });
+      const key = `${item.id}:${field}`;
+      debounceKey(key, () => updateClient(item.id, { [field]: value }), 450);
     }
     function onEmail(i){
       const c = getClients()[i]; if(!c) return;
@@ -609,45 +616,62 @@
     function download(filename, text){
       const blob = new Blob([text], {type:'application/json'});
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
-      URL.revokeObjectURL(url);
+      const a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
     }
     function backupUser(){
       const payload = { email: currentUser?.email || '', clients: getClients() };
       const base = (currentUser?.email?.split('@')[0]) || 'user';
       download(`${base}_backup.json`, JSON.stringify(payload,null,2));
     }
+
+    // Strict validator for restore payload
+    function validateClient(c){
+      const errors = [];
+      if(!c || typeof c !== 'object') { errors.push('Invalid entry'); return errors; }
+      if(!c.name || typeof c.name !== 'string') errors.push('Missing name');
+      if(!c.startDate || !/^\d{4}-\d{2}-\d{2}$/.test(c.startDate)) errors.push('Invalid startDate');
+      if(c.email && typeof c.email !== 'string') errors.push('Invalid email');
+      if(c.phone && typeof c.phone !== 'string') errors.push('Invalid phone');
+      if(c.address && typeof c.address !== 'string') errors.push('Invalid address');
+      if(c.plan && typeof c.plan !== 'string') errors.push('Invalid plan');
+      if(c.notes && typeof c.notes !== 'string') errors.push('Invalid notes');
+      return errors;
+    }
+
     async function restoreUser(file) {
       if (!currentUser) return;
       const reader = new FileReader();
       reader.onload = async () => {
         try {
           const obj = JSON.parse(reader.result);
-          if (!obj || !Array.isArray(obj.clients)) throw new Error('Invalid file');
+          if (!obj || !Array.isArray(obj.clients)) throw new Error('Invalid file: missing clients array');
+
+          // Validate first
+          const problems = [];
+          const clean = obj.clients.map((c,idx)=>{
+            const copy = { ...c };
+            delete copy.id; delete copy._index; delete copy._next; delete copy.justPaid;
+            const errs = validateClient(copy);
+            if (errs.length) problems.push(`Row ${idx+1}: ${errs.join(', ')}`);
+            return copy;
+          });
+          if (problems.length) throw new Error('Validation errors:\n' + problems.join('\n'));
 
           const colRefPath = ['users', currentUser.uid, 'clients'];
           const batch = writeBatch(db);
-
-          // Delete existing clients
           clientsCache.forEach(c => batch.delete(doc(db, ...colRefPath, c.id)));
-
-          // Add imported clients
-          obj.clients.forEach(c => {
-            const copy = { ...c };
-            delete copy.id; delete copy._index; delete copy._next; delete copy.justPaid;
-            const newRef = doc(collection(db, ...colRefPath));
-            batch.set(newRef, copy);
-          });
-
+          clean.forEach(c => { const ref = doc(collection(db, ...colRefPath)); batch.set(ref, c); });
           await batch.commit();
           alert('Restore complete!');
         } catch (e) {
           console.error(e);
-          alert('Could not restore — invalid file.');
+          alert(String(e.message || e) || 'Could not restore — invalid file.');
         }
       };
       reader.readAsText(file);
     }
+
     async function toggleDark(){
       const current = !!(currentProfile?.prefs?.darkMode);
       await savePrefs({ darkMode: !current });
@@ -660,24 +684,52 @@
       alert('Template saved!');
     }
 
-    // ===================== Simple dialog helpers (kept) =====================
+    // ===================== Simple dialog helpers =====================
     function showDialog(title, bodyNode, onOk, okLabel='OK', cancelLabel='Cancel'){
       $('#dialogTitle').textContent = title;
       const body = $('#dialogBody'); body.innerHTML=''; if(bodyNode) body.appendChild(bodyNode);
-      $('#dialogBackdrop').classList.add('open');
+      trapOpen('#dialogBackdrop');
       $('#dialogOk').textContent = okLabel; $('#dialogCancel').textContent = cancelLabel;
-      const okHandler = async ()=>{ if(typeof onOk === 'function'){ const res = await onOk(); if(res === false) return; } closeDialog(); };
+      const okHandler = async ()=>{ if(typeof onOk === 'function'){ const res = await onOk(); if(res === false) return; } trapClose('#dialogBackdrop'); };
       $('#dialogOk').onclick = okHandler;
-      $('#dialogCancel').onclick = closeDialog;
+      $('#dialogCancel').onclick = ()=> trapClose('#dialogBackdrop');
     }
-    function closeDialog(){ $('#dialogBackdrop').classList.remove('open'); }
 
-    // ===================== UI Wiring =====================
-    function openModal(sel){ const el = document.querySelector(sel); if (el) el.classList.add('open'); }
-    function closeModal(sel){ const el = document.querySelector(sel); if (el) el.classList.remove('open'); }
+    // ===================== Modal accessibility (focus trap) =====================
+    let lastActive = null;
+    function trapOpen(sel){
+      const el = document.querySelector(sel);
+      if (!el) return;
+      lastActive = document.activeElement;
+      el.classList.add('open');
+      el.setAttribute('aria-hidden','false');
+      const focusable = el.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      (focusable||el).focus();
+      function onKey(e){
+        if(e.key==='Escape'){ trapClose(sel); }
+        if(e.key==='Tab'){
+          const nodes = el.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          const list = Array.from(nodes).filter(n=>!n.hasAttribute('disabled'));
+          if(!list.length) return;
+          const first=list[0], last=list[list.length-1];
+          if(e.shiftKey && document.activeElement===first){ last.focus(); e.preventDefault(); }
+          else if(!e.shiftKey && document.activeElement===last){ first.focus(); e.preventDefault(); }
+        }
+      }
+      el._trapHandler = onKey; document.addEventListener('keydown', onKey);
+    }
+    function trapClose(sel){
+      const el = document.querySelector(sel); if(!el) return;
+      el.classList.remove('open');
+      el.setAttribute('aria-hidden','true');
+      document.removeEventListener('keydown', el._trapHandler); delete el._trapHandler;
+      if(lastActive && lastActive.focus) lastActive.focus();
+    }
+    function openModal(sel){ trapOpen(sel); }
+    function closeModal(sel){ trapClose(sel); }
     window.closeModal = closeModal;
 
-    // Login + Register
+    // ===================== UI Wiring =====================
     $('#createAccountBtn').addEventListener('click', ()=> openModal('#registerModal'));
     document.addEventListener('click', (e)=>{
       const btn = e.target.closest('[data-close-modal]');
@@ -694,7 +746,7 @@
       await login($('#loginEmail').value, $('#loginPassword').value);
     });
 
-    // Forgot password (email-based)
+    // Forgot password
     $('#forgotBtn').addEventListener('click', ()=> openModal('#forgotModal'));
     $('#forgotSend').addEventListener('click', async ()=>{
       const email = $('#forgotEmail').value.trim();
@@ -703,7 +755,7 @@
         await sendPasswordResetEmail(auth, email);
         alert(`Password reset email sent to ${email}`);
         closeModal('#forgotModal');
-      }catch(e){ console.error(e); alert('Could not send reset email.'); }
+      }catch(e){ console.error(e); alert(mapAuthError(e)); }
     });
 
     // Menu & misc
@@ -729,25 +781,23 @@
     $('#filterSelect').addEventListener('change', render);
     $('#sortSelect').addEventListener('change', render);
 
-    // ==== NEW: Add Client show/hide logic + submit ====
+    // Add Client show/hide logic + submit
     const addForm = $('#clientForm');
     const toggleAddBtn = $('#toggleAddForm');
     const cancelAddBtn = $('#cancelAdd');
 
-    // Show/hide the stacked form inside the card
     toggleAddBtn.addEventListener('click', ()=>{
-      addForm.classList.toggle('hide');
-      if(!addForm.classList.contains('hide')){
-        $('#clientName').focus();
-      }
+      const hidden = addForm.classList.toggle('hide');
+      toggleAddBtn.setAttribute('aria-expanded', hidden ? 'false':'true');
+      if(!hidden){ $('#clientName').focus(); }
     });
-    // Cancel hides the form and clears it
     cancelAddBtn.addEventListener('click', ()=>{
       addForm.reset();
       addForm.classList.add('hide');
+      toggleAddBtn.setAttribute('aria-expanded','false');
+      toggleAddBtn.focus();
     });
 
-    // Add client (same logic as before, but now from the hidden form)
     addForm.addEventListener('submit', async e => {
       e.preventDefault();
       const name = $('#clientName').value.trim();
@@ -756,12 +806,12 @@
       const address = $('#clientAddress').value.trim();
       const startDate = $('#startDate').value;
       const plan = $('#clientPlan').value.trim();
-      if (!name || !startDate) return;
+      if (!name || !startDate) return alert('Please fill Name and Date.');
       await addClient({ name, email, phone, address, startDate, plan, notes: '' });
       addForm.reset();
       addForm.classList.add('hide');
+      toggleAddBtn.setAttribute('aria-expanded','false');
     });
-    // ==== /NEW Add Client ====
 
     // Event delegation for lists (clicks)
     document.addEventListener('click', async (e)=>{
@@ -775,7 +825,7 @@
       }
     });
 
-    // Event delegation for inputs (blur/change)
+    // Event delegation for inputs
     document.addEventListener('change', async (e)=>{
       const inp = e.target;
       if (inp.matches('.inp.date')){
@@ -786,11 +836,11 @@
     document.addEventListener('blur', async (e)=>{
       const inp = e.target;
       if (!(inp instanceof HTMLElement)) return;
-      if (inp.matches('.inp.plan')) { const i = +inp.dataset.i; await onEdit(i, 'plan', inp.value); }
-      if (inp.matches('.inp.email')){ const i = +inp.dataset.i; await onEdit(i, 'email', inp.value); }
-      if (inp.matches('.inp.phone')){ const i = +inp.dataset.i; await onEdit(i, 'phone', inp.value); }
-      if (inp.matches('.inp.addr')) { const i = +inp.dataset.i; await onEdit(i, 'address', inp.value); }
-      if (inp.matches('.inp.notes')){ const i = +inp.dataset.i; await onEdit(i, 'notes', inp.value); }
+      if (inp.matches('.inp.plan')) { const i = +inp.dataset.i; onEdit(i, 'plan', inp.value); }
+      if (inp.matches('.inp.email')){ const i = +inp.dataset.i; onEdit(i, 'email', inp.value); }
+      if (inp.matches('.inp.phone')){ const i = +inp.dataset.i; onEdit(i, 'phone', inp.value); }
+      if (inp.matches('.inp.addr')) { const i = +inp.dataset.i; onEdit(i, 'address', inp.value); }
+      if (inp.matches('.inp.notes')){ const i = +inp.dataset.i; onEdit(i, 'notes', inp.value); }
     }, true);
 
     // Save template
@@ -804,7 +854,6 @@
         match /users/{userId} {
           allow read, update, delete: if request.auth != null && request.auth.uid == userId;
           allow create: if request.auth != null && request.auth.uid == userId;
-
           match /clients/{clientId} {
             allow read, write: if request.auth != null && request.auth.uid == userId;
           }
