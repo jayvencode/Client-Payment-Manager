@@ -130,7 +130,39 @@
     cursor: pointer;
   }
   
-  
+  /* Make client info readable on small screens */
+@media (max-width: 600px) {
+  .client .info {
+    display: block;            /* stack fields instead of grid */
+  }
+
+  .client .info > div {
+    margin-bottom: 10px;
+  }
+
+  .client .label {
+    font-size: 14px;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .client .value,
+  .client .inp {
+    font-size: 16px;
+    width: 100%;               /* full width inputs */
+  }
+
+  .client {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .client .actions {
+    flex-direction: column;    /* stack buttons vertically */
+    gap: 6px;
+  }
+}
+
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
