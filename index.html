@@ -509,11 +509,12 @@ function render(){
   $$('.btn.success.paid').forEach(b=>b.addEventListener('click', onMarkPaid));
   $$('.btn.danger.del').forEach(b=>b.addEventListener('click', onDelete));
   $$('.inp.date').forEach(i=>i.addEventListener('change', onEditDate));
-  $$('.inp.plan').forEach(i=>i.addEventListener('input', onEditPlan));
-  $$('.inp.email').forEach(i=>i.addEventListener('input', onEditEmail));
-  $$('.inp.phone').forEach(i=>i.addEventListener('input', onEditPhone));
-  $$('.inp.addr').forEach(i=>i.addEventListener('input', onEditAddr));
-  $$('.inp.notes').forEach(i=>i.addEventListener('input', onEditNotes));
+$$('.inp.date').forEach(i=>i.addEventListener('change', onEditDate));
+$$('.inp.plan').forEach(i=>i.addEventListener('blur', onEditPlan));
+$$('.inp.email').forEach(i=>i.addEventListener('blur', onEditEmail));
+$$('.inp.phone').forEach(i=>i.addEventListener('blur', onEditPhone));
+$$('.inp.addr').forEach(i=>i.addEventListener('blur', onEditAddr));
+$$('.inp.notes').forEach(i=>i.addEventListener('blur', onEditNotes));
   $$('button[data-action="email"]').forEach(b=>b.addEventListener('click', onEmail));
 }
 
