@@ -111,7 +111,7 @@
         <div class="row" style="gap:14px;">
           <div class="card">
             <h3>Login</h3>
-            <!-- CHANGED: email-only login -->
+            <!-- email-only login -->
             <form id="loginForm" class="row" style="gap:10px;margin-top:8px;">
               <input id="loginEmail" type="email" placeholder="Email" autocomplete="username" required />
               <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password" required />
@@ -135,7 +135,7 @@
   <div id="registerModal" class="dialog-backdrop" aria-hidden="true">
     <div class="dialog card">
       <h3>Create Account</h3>
-      <!-- CHANGED: signup asks ONLY for email + password -->
+      <!-- signup asks ONLY for email + password -->
       <form id="registerForm" class="row" style="gap:10px;">
         <input id="regEmail" type="email" placeholder="Email (used for login & reset)" required />
         <input id="regPassword" type="password" placeholder="Password" required />
@@ -151,7 +151,7 @@
   <div id="forgotModal" class="dialog-backdrop" aria-hidden="true">
     <div class="dialog card">
       <h3>Forgot Password</h3>
-      <!-- CHANGED: ask for email instead of username -->
+      <!-- ask for email instead of username -->
       <div class="row" style="gap:10px;">
         <input id="forgotEmail" type="email" placeholder="Enter your email" />
       </div>
@@ -194,16 +194,25 @@
       </details>
     </div>
 
-    <!-- Add Client -->
-    <div class="card mb-12">
-      <form id="clientForm" class="row" style="grid-template-columns:1.2fr 1fr 1fr 1fr 1fr 1fr auto;">
+    <!-- Add Client (toggleable) -->
+    <div class="card mb-12" id="addClientCard">
+      <div class="row" style="grid-template-columns:1fr auto; align-items:center;">
+        <h3 style="margin:0;">Clients</h3>
+        <button id="toggleAddClient" class="btn primary" type="button" aria-expanded="false">+ Add Client</button>
+      </div>
+
+      <!-- Hidden form appears only after clicking the button -->
+      <form id="clientForm" class="row hide" style="margin-top:10px; grid-template-columns:1.2fr 1fr 1fr 1fr 1fr 1fr auto;">
         <input type="text" id="clientName" placeholder="Client Name" required />
         <input type="email" id="clientEmail" placeholder="Client Email" />
         <input type="text" id="clientPhone" placeholder="Contact No." />
         <input type="text" id="clientAddress" placeholder="Address" />
         <input type="date" id="startDate" required />
         <input type="text" id="clientPlan" placeholder="Plan (e.g. $50)" required />
-        <button class="btn primary" type="submit">Add</button>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn success" type="submit">Save</button>
+          <button id="cancelAddClient" class="btn ghost" type="button">Cancel</button>
+        </div>
       </form>
     </div>
 
@@ -267,7 +276,6 @@
     import {
       getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, deleteDoc,
       onSnapshot, serverTimestamp, writeBatch, query, orderBy
-      // CHANGED: removed runTransaction (no username reservation)
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 
@@ -321,7 +329,6 @@
     let unsubClients = null;
 
     // ===================== Auth & Profiles =====================
-    // CHANGED: register() no username; email-only
     async function register(email, password){
       email = (email||'').trim();
       if(!email || !password) return alert('Please fill email and password.');
@@ -352,7 +359,6 @@
       }
     }
 
-    // CHANGED: login() by email directly
     async function login(email, password){
       email = (email||'').trim();
       if(!email || !password) return;
@@ -392,7 +398,7 @@
       currentProfile = profSnap.exists() ? profSnap.data() : { email: user.email, prefs:{} };
       setTheme(!!currentProfile?.prefs?.darkMode);
 
-      // CHANGED: show email only
+      // show email only
       $('#whoami').textContent = currentProfile.email || user.email || '';
 
       // Prefill template
@@ -645,7 +651,7 @@
       await login($('#loginEmail').value, $('#loginPassword').value);
     });
 
-    // Forgot password (CHANGED: email-based)
+    // Forgot password (email-based)
     $('#forgotBtn').addEventListener('click', ()=> openModal('#forgotModal'));
     $('#forgotSend').addEventListener('click', async ()=>{
       const email = $('#forgotEmail').value.trim();
@@ -680,7 +686,25 @@
     $('#filterSelect').addEventListener('change', render);
     $('#sortSelect').addEventListener('change', render);
 
-    // Add client
+    // === Add Client (toggle UI) ===
+    const addBtn = $('#toggleAddClient');
+    const addForm = $('#clientForm');
+    const cancelAdd = $('#cancelAddClient');
+
+    function setAddForm(open){
+      addForm.classList.toggle('hide', !open);
+      addBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      addBtn.textContent = open ? 'Close' : '+ Add Client';
+      if (open) addForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    addBtn.addEventListener('click', ()=> setAddForm(addForm.classList.contains('hide')));
+    cancelAdd.addEventListener('click', ()=>{
+      addForm.reset();
+      setAddForm(false);
+    });
+
+    // Add client (Save)
     $('#clientForm').addEventListener('submit', async e => {
       e.preventDefault();
       const name = $('#clientName').value.trim();
@@ -692,6 +716,7 @@
       if (!name || !startDate) return;
       await addClient({ name, email, phone, address, startDate, plan, notes: '' });
       e.target.reset();
+      setAddForm(false);
     });
 
     // Event delegation for lists (clicks)
