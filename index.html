@@ -5,26 +5,8 @@
   <title>Client List Reminders — User</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- ✅ Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
-
-  <!-- ✅ Firebase Initialization -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyD8KyIuPpW4w9vwEwfzemhxYYp2nJy4Io8",
-      authDomain: "client-management-f6060.firebaseapp.com",
-      projectId: "client-management-f6060",
-      storageBucket: "client-management-f6060.appspot.com",
-      messagingSenderId: "267148533200",
-      appId: "1:267148533200:web:59f74ba662122c81c22dd5",
-      measurementId: "G-M6QEGME5SZ"
-    };
-    firebase.initializeApp(firebaseConfig);
-    if (typeof firebase.analytics === 'function') { firebase.analytics(); }
-  </script>
+  <!-- Excel export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 
   <style>
     :root {
@@ -77,109 +59,58 @@
     .dialog-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;}
     .dialog-backdrop.open{display:flex;}
     .dialog{max-width:520px;width:100%;}
-  .dialog .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;}
+    .dialog .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;}
 
-@media(max-width:600px){
-  .client{padding:10px;font-size:14px;}
-  .btn{width:100%;padding:15px;}
-}
+    @media(max-width:600px){
+      .client{padding:10px;font-size:14px;}
+      .btn{width:100%;padding:15px;}
+    }
+    @media(min-width:601px) and (max-width:1024px){
+      .client{padding:15px;font-size:16px;}
+      .btn{width:auto;}
+    }
 
-/* Tablet */
-@media(min-width:601px) and (max-width:1024px){
-  .client{padding:15px;font-size:16px;}
-  .btn{width:auto;}
-}
+    /* small action buttons for client cards */
+    .client .actions .btn { padding: 6px 8px; font-size: 0.85rem; }
+    @media(max-width:600px){ .client .actions .btn { padding: 4px 6px; font-size: 0.75rem; } }
+    @media(min-width:601px) and (max-width:900px){ .client .actions .btn { padding: 5px 7px; font-size: 0.8rem; } }
+    @media(min-width:901px){ .client .actions .btn { padding: 6px 10px; font-size: 0.9rem; } }
 
-/* ===== Small action buttons for client cards ===== */
-.client .actions .btn {
-  padding: 6px 8px;
-  font-size: 0.85rem;
-}
+    .spinner{border:4px solid #f3f3f3;border-top:4px solid #3498db;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;}
+    @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
 
-@media(max-width:600px){
-  .client .actions .btn {
-    padding: 4px 6px;
-    font-size: 0.75rem;
-  }
-}
+    /* Fix calendar button dark mode issue */
+    input[type="date"] { color-scheme: light !important; }
+    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
-@media(min-width:601px) and (max-width:900px){
-  .client .actions .btn {
-    padding: 5px 7px;
-    font-size: 0.8rem;
-  }
-}
+    /* Make client info readable on small screens */
+    @media (max-width: 600px) {
+      .client .info { display: block; }
+      .client .info > div { margin-bottom: 10px; }
+      .client .label { font-size: 14px; display: block; margin-bottom: 2px; }
+      .client .value, .client .inp { font-size: 16px; width: 100%; }
+      .client { font-size: 14px; padding: 12px; }
+      .client .actions { flex-direction: column; gap: 6px; }
+    }
 
-@media(min-width:901px){
-  .client .actions .btn {
-    padding: 6px 10px;
-    font-size: 0.9rem;
-  }
-}
-
-.spinner{border:4px solid #f3f3f3;border-top:4px solid #3498db;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-
- /* ✅ Fix calendar button dark mode issue */
-  input[type="date"] {
-    color-scheme: light !important; /* force light theme calendar */
-  }
-
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1); /* make icon visible on dark mode */
-    cursor: pointer;
-  }
-  
-  /* Make client info readable on small screens */
-@media (max-width: 600px) {
-  .client .info {
-    display: block;            /* stack fields instead of grid */
-  }
-
-  .client .info > div {
-    margin-bottom: 10px;
-  }
-
-  .client .label {
-    font-size: 14px;
-    display: block;
-    margin-bottom: 2px;
-  }
-
-  .client .value,
-  .client .inp {
-    font-size: 16px;
-    width: 100%;               /* full width inputs */
-  }
-
-  .client {
-    font-size: 14px;
-    padding: 12px;
-  }
-
-  .client .actions {
-    flex-direction: column;    /* stack buttons vertically */
-    gap: 6px;
-  }
-}
-
+    /* utility spacing */
+    .mb-12 { margin-bottom: 12px; }
+    .center { text-align: center; }
   </style>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="container">
     <!-- LOGIN -->
     <div id="loginView">
       <div class="card" style="max-width:520px;margin:8vh auto;">
-        <h1 style="text-align:center;">Client List Reminders</h1>
-        <p class="muted" style="text-align:center;margin-bottom:14px;">v.02</p>
+        <h1 class="center">Client List Reminders</h1>
+        <p class="muted center" style="margin-bottom:14px;">v.03 (modular)</p>
         <div class="row" style="gap:14px;">
           <div class="card">
             <h3>Login</h3>
             <form id="loginForm" class="row" style="gap:10px;margin-top:8px;">
-              <input id="loginUsername" type="text" placeholder="Username" required />
-              <input id="loginPassword" type="password" placeholder="Password" required />
+              <input id="loginUsername" type="text" placeholder="Username" autocomplete="username" required />
+              <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password" required />
               <button class="btn primary" type="submit">Login</button>
               <button id="forgotBtn" class="btn ghost" type="button">Forgot Password?</button>
             </form>
@@ -197,7 +128,7 @@
   </div>
 
   <!-- Register Modal -->
-  <div id="registerModal" class="dialog-backdrop">
+  <div id="registerModal" class="dialog-backdrop" aria-hidden="true">
     <div class="dialog card">
       <h3>Create Account</h3>
       <form id="registerForm" class="row" style="gap:10px;">
@@ -208,9 +139,23 @@
         <input id="regA" type="text" placeholder="(Optional) Recovery note answer" />
         <div class="actions">
           <button class="btn success" type="submit">Create Account</button>
-          <button class="btn ghost" type="button" onclick="closeModal()">Cancel</button>
+          <button class="btn ghost" type="button" data-close-modal="#registerModal">Cancel</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  <div id="forgotModal" class="dialog-backdrop" aria-hidden="true">
+    <div class="dialog card">
+      <h3>Forgot Password</h3>
+      <div class="row" style="gap:10px;">
+        <input id="forgotUsername" type="text" placeholder="Enter your username" />
+      </div>
+      <div class="actions">
+        <button class="btn" type="button" data-close-modal="#forgotModal">Cancel</button>
+        <button id="forgotSend" class="btn primary" type="button">Send Reset Email</button>
+      </div>
     </div>
   </div>
 
@@ -221,8 +166,8 @@
       <div class="brand">📒 Client List Reminders</div>
       <div class="muted" id="whoami"></div>
       <div class="menu-wrap">
-        <button id="moreBtn" class="btn">☰ Menu</button>
-        <div id="moreMenu" class="menu">
+        <button id="moreBtn" class="btn" aria-haspopup="true" aria-expanded="false">☰ Menu</button>
+        <div id="moreMenu" class="menu" role="menu" aria-hidden="true">
           <div class="item" id="exportExcel">📥 Export to Excel</div>
           <div class="item" id="backupBtn">💾 Backup (download .json)</div>
           <label class="item" for="restoreInput" style="display:block;cursor:pointer;">📤 Restore (upload .json)</label>
@@ -234,7 +179,7 @@
     </div>
 
     <!-- Settings & Email Template -->
-    <div class="card" style="margin-bottom:12px;">
+    <div class="card mb-12">
       <details>
         <summary><strong>✉️ Email Reminder Template</strong> <span class="muted">(per user)</span></summary>
         <div class="row" style="margin-top:10px;grid-template-columns:1fr;">
@@ -247,7 +192,7 @@
     </div>
 
     <!-- Add Client -->
-    <div class="card" style="margin-bottom:12px;">
+    <div class="card mb-12">
       <form id="clientForm" class="row" style="grid-template-columns:1.2fr 1fr 1fr 1fr 1fr 1fr auto;">
         <input type="text" id="clientName" placeholder="Client Name" required />
         <input type="email" id="clientEmail" placeholder="Client Email" />
@@ -260,7 +205,7 @@
     </div>
 
     <!-- Filters -->
-    <div class="card" style="margin-bottom:12px;">
+    <div class="card mb-12">
       <div class="row" style="grid-template-columns: 2fr 1fr 1fr;">
         <input id="searchInput" type="text" placeholder="Search by client name…" />
         <select id="filterSelect">
@@ -296,7 +241,7 @@
     </div>
   </div>
 
-  <!-- Dialog -->
+  <!-- Generic Dialog (kept for future use) -->
   <div id="dialogBackdrop" class="dialog-backdrop">
     <div class="dialog card">
       <h3 id="dialogTitle">Dialog</h3>
@@ -308,469 +253,518 @@
     </div>
   </div>
 
-<script>
-/* ======== Helpers & Globals ======== */
-const $  = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
-const auth = firebase.auth();
-const db   = firebase.firestore();
+  <!-- APP SCRIPT (Firebase Modular) -->
+  <script type="module">
+    // ===================== Firebase Modular SDK =====================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, deleteDoc,
+      onSnapshot, serverTimestamp, writeBatch, query, orderBy, runTransaction
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 
-function setTheme(d){ document.documentElement.setAttribute('data-theme', d?'dark':'light'); }
-function escapeHtml(s=''){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]))}
-function escapeAttr(s=''){return escapeHtml(s)}
-const today0 = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
-function formatDate(d){ return d.toISOString().split('T')[0]; }
-function nextPaymentFrom(startDate){
-  const now = today0();
-  const next = new Date(startDate); next.setHours(0,0,0,0);
-  while(next < now){ next.setMonth(next.getMonth()+1); }
-  return next;
-}
-function isToday(dateObj){ const t=today0().getTime(); const d=new Date(dateObj); d.setHours(0,0,0,0); return d.getTime()===t; }
-function isThisMonth(dateObj){ const t=today0(); return dateObj.getMonth()===t.getMonth() && dateObj.getFullYear()===t.getFullYear(); }
-function isOverdue(dateObj){ const now=today0(); const d=new Date(dateObj); d.setHours(0,0,0,0); return d<now; }
-
-let currentUser = null;         // firebase.User
-let currentProfile = null;      // {username, email, prefs...}
-let clientsCache = [];          // array of {id, name, ...}
-let unsubClients = null;        // onSnapshot unsubscribe
-
-/* ======== Username <-> email mapping ========
-   We let users login with a USERNAME. We store mapping in:
-   Collection: "usernames", doc id = usernameLower, fields { uid, email }
-   User profile: "users/{uid}" doc stores { username, email, prefs... }
-=============================================*/
-
-function showSpinner(show){ $('#loadingSpinner').style.display = show ? 'block' : 'none'; }
-
-/* ======== Auth Wiring ======== */
-async function register(username, email, password, q, a){
-  username = (username||'').trim();
-  email = (email||'').trim();
-  if(!username || !email || !password) return alert('Please fill username, email and password.');
-  const userKey = username.toLowerCase();
-
-  showSpinner(true);
-  try{
-    // Check username availability
-    const handle = await db.collection('usernames').doc(userKey).get();
-    if (handle.exists) { alert('Username already exists.'); return; }
-
-    // Create auth account
-    const cred = await auth.createUserWithEmailAndPassword(email, password);
-    const uid = cred.user.uid;
-
-    // Save profile
-    const profile = {
-      username, email,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      prefs: { darkMode:false, tplSubject:'Payment Reminder for {{name}}', tplBody:'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.' },
-      recoveryQ: q || '', recoveryA: a || ''
+    // ---- Config ----
+    const firebaseConfig = {
+      apiKey: "AIzaSyD8KyIuPpW4w9vwEwfzemhxYYp2nJy4Io8",
+      authDomain: "client-management-f6060.firebaseapp.com",
+      projectId: "client-management-f6060",
+      storageBucket: "client-management-f6060.appspot.com",
+      messagingSenderId: "267148533200",
+      appId: "1:267148533200:web:59f74ba662122c81c22dd5",
+      measurementId: "G-M6QEGME5SZ"
     };
-    await db.collection('users').doc(uid).set(profile);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    try { if (await isSupported()) getAnalytics(app); } catch(_) {}
 
-    // Save username handle
-    await db.collection('usernames').doc(userKey).set({ uid, email });
+    // ===================== Utils & State =====================
+    const $  = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    const today0 = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+    function formatDate(d){ return d.toISOString().split('T')[0]; }
+    function setTheme(d){ document.documentElement.setAttribute('data-theme', d?'dark':'light'); }
+    function escapeHtml(s=''){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]))}
+    function escapeAttr(s=''){return escapeHtml(s)}
+    function showSpinner(show){ $('#loadingSpinner').style.display = show ? 'block' : 'none'; }
 
-    alert('Account created! You can now login.');
-    closeModal();
-  } catch(err){
-    console.error(err);
-    alert(err.message || 'Could not create account.');
-  } finally {
-    showSpinner(false);
-  }
-}
+    // Fast monthly advance without long loops
+    function nextPaymentFrom(startDate){
+      const now = today0();
+      const next = new Date(startDate);
+      next.setHours(0,0,0,0);
+      if (isNaN(next)) return now; // fallback
+      if (next >= now) return next;
+      const yDiff = now.getFullYear() - next.getFullYear();
+      const mDiff = now.getMonth() - next.getMonth();
+      let months = yDiff * 12 + mDiff;
+      // If the "day" of start is after today's day, we don't need the extra month yet
+      if (now.getDate() > next.getDate()) months += 1;
+      next.setMonth(next.getMonth() + months);
+      // ensure we didn't overshoot backwards because of month length
+      while (next < now) next.setMonth(next.getMonth() + 1);
+      return next;
+    }
+    function isToday(dateObj){ const t=today0().getTime(); const d=new Date(dateObj); d.setHours(0,0,0,0); return d.getTime()===t; }
+    function isThisMonth(dateObj){ const t=today0(); return dateObj.getMonth()===t.getMonth() && dateObj.getFullYear()===t.getFullYear(); }
+    function isOverdue(dateObj){ const now=today0(); const d=new Date(dateObj); d.setHours(0,0,0,0); return d<now; }
 
-async function login(username, password){
-  username = (username||'').trim();
-  if(!username || !password) return;
-  showSpinner(true);
-  try{
-    // Find email by username
-    const userKey = username.toLowerCase();
-    const handle = await db.collection('usernames').doc(userKey).get();
-    if(!handle.exists){ alert('Invalid username or password.'); return; }
-    const { email } = handle.data();
-    await auth.signInWithEmailAndPassword(email, password);
-    // onAuthStateChanged will continue the flow
-  } catch(err){
-    console.error(err);
-    alert('Invalid username or password.');
-  } finally {
-    showSpinner(false);
-  }
-}
+    let currentUser = null;        // Firebase User
+    let currentProfile = null;     // {username, email, prefs...}
+    let clientsCache = [];         // [{id, ...}]
+    let unsubClients = null;
 
-function logout(){
-  if(unsubClients) { unsubClients(); unsubClients = null; }
-  clientsCache = [];
-  currentProfile = null;
-  auth.signOut();
-  $('#appView').classList.add('hide');
-  $('#loginView').classList.remove('hide');
-  setTheme(false);
-  $('#loginForm').reset();
-}
+    // ===================== Auth & Profiles =====================
+    async function register(username, email, password, q, a){
+      username = (username||'').trim();
+      email = (email||'').trim();
+      if(!username || !email || !password) return alert('Please fill username, email and password.');
+      const userKey = username.toLowerCase();
 
-auth.onAuthStateChanged(async (user)=>{
-  if(!user){
-    // back to login
-    $('#whoami').textContent = '';
-    $('#loginView').classList.remove('hide');
-    $('#appView').classList.add('hide');
-    return;
-  }
-  currentUser = user;
-  // Load profile
-  const profSnap = await db.collection('users').doc(user.uid).get();
-  currentProfile = profSnap.exists ? profSnap.data() : { email: user.email, username: user.email.split('@')[0], prefs:{} };
+      showSpinner(true);
+      try{
+        // 1) Create auth account
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = cred.user.uid;
 
-  setTheme(!!currentProfile?.prefs?.darkMode);
-  $('#whoami').textContent = `${currentProfile.username} • ${currentProfile.email}`;
+        // 2) Atomically reserve username via transaction
+        const unameRef = doc(db, 'usernames', userKey);
+        await runTransaction(db, async (tx) => {
+          const snap = await tx.get(unameRef);
+          if (snap.exists()) throw new Error('Username already exists.');
+          tx.set(unameRef, { uid, email });
+        });
 
-  // Prefill template UI
-  const p = currentProfile.prefs || {};
-  $('#tplSubject').value = p.tplSubject || 'Payment Reminder for {{name}}';
-  $('#tplBody').value    = p.tplBody || 'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.';
+        // 3) Save profile
+        const profile = {
+          username, email,
+          createdAt: serverTimestamp(),
+          prefs: {
+            darkMode:false,
+            tplSubject:'Payment Reminder for {{name}}',
+            tplBody:'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.'
+          },
+          recoveryQ: q || '', recoveryA: a || ''
+        };
+        await setDoc(doc(db, 'users', uid), profile);
 
-  // Subscribe to clients in real-time
-  if(unsubClients) unsubClients();
-  unsubClients = db.collection('users').doc(user.uid).collection('clients')
-    .orderBy('name')
-    .onSnapshot(snap=>{
-      clientsCache = snap.docs.map(d=>({ id:d.id, ...d.data() }));
-      render();
-    });
+        alert('Account created! You can now login.');
+        closeModal('#registerModal');
+      } catch(err){
+        console.error(err);
+        alert(err.message || 'Could not create account.');
+      } finally {
+        showSpinner(false);
+      }
+    }
 
-  $('#loginView').classList.add('hide');
-  $('#appView').classList.remove('hide');
-});
+    async function login(username, password){
+      username = (username||'').trim();
+      if(!username || !password) return;
+      showSpinner(true);
+      try{
+        // lookup email by username
+        const handleRef = doc(db, 'usernames', username.toLowerCase());
+        const handle = await getDoc(handleRef);
+        if(!handle.exists()){ alert('Check your username or password.'); return; }
+        const { email } = handle.data();
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch(err){
+        console.error(err);
+        alert('Check your username or password.');
+      } finally {
+        showSpinner(false);
+      }
+    }
 
-/* ======== Clients / Prefs (Firestore) ======== */
-function getClients(){ return clientsCache || []; }
-function statusFor(c){
-  const next = nextPaymentFrom(new Date(c.startDate));
-  if (isToday(next)) return 'Due Today';
-  if (isThisMonth(next)) return 'Due This Month';
-  return 'Paid for Next Month';
-}
+    function logout(){
+      if(unsubClients) { unsubClients(); unsubClients = null; }
+      clientsCache = [];
+      currentProfile = null;
+      signOut(auth);
+      $('#appView').classList.add('hide');
+      $('#loginView').classList.remove('hide');
+      setTheme(false);
+      $('#loginForm').reset();
+    }
 
-async function addClient(c){
-  if(!currentUser) return;
-  await db.collection('users').doc(currentUser.uid).collection('clients').add(c);
-}
+    onAuthStateChanged(auth, async (user)=>{
+      if(!user){
+        $('#whoami').textContent = '';
+        $('#loginView').classList.remove('hide');
+        $('#appView').classList.add('hide');
+        return;
+      }
+      currentUser = user;
+      // Profile
+      const profSnap = await getDoc(doc(db, 'users', user.uid));
+      currentProfile = profSnap.exists() ? profSnap.data() : { email: user.email, username: user.email.split('@')[0], prefs:{} };
+      setTheme(!!currentProfile?.prefs?.darkMode);
+      $('#whoami').textContent = `${currentProfile.username} • ${currentProfile.email}`;
 
-async function updateClient(id, patch){
-  if(!currentUser || !id) return;
-  await db.collection('users').doc(currentUser.uid).collection('clients').doc(id).update(patch);
-}
+      // Prefill template
+      const p = currentProfile.prefs || {};
+      $('#tplSubject').value = p.tplSubject || 'Payment Reminder for {{name}}';
+      $('#tplBody').value    = p.tplBody || 'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.';
 
-async function deleteClient(id){
-  if(!currentUser || !id) return;
-  await db.collection('users').doc(currentUser.uid).collection('clients').doc(id).delete();
-}
-
-async function savePrefs(patch){
-  if(!currentUser) return;
-  const next = { ...(currentProfile||{}), prefs: { ...(currentProfile?.prefs||{}), ...patch } };
-  await db.collection('users').doc(currentUser.uid).update({ prefs: next.prefs });
-  currentProfile = next;
-}
-
-/* ======== UI Actions kept from your code, but now using Firestore ======== */
-function render(){
-  const dueWrap = $('#dueList'), paidWrap = $('#paidList');
-  dueWrap.innerHTML=''; paidWrap.innerHTML='';
-
-  let list = getClients().map((c,i)=>({ ...c, _index:i, _next: nextPaymentFrom(new Date(c.startDate)) }));
-
-  const q = $('#searchInput').value.trim().toLowerCase();
-  if(q) list = list.filter(c => (c.name||'').toLowerCase().includes(q));
-
-  const filt = $('#filterSelect').value;
-  if(filt==='due-month') list = list.filter(c => isThisMonth(c._next));
-  if(filt==='overdue') list = list.filter(c => isOverdue(c._next));
-  if(filt==='upcoming') list = list.filter(c => !isThisMonth(c._next) && !isOverdue(c._next));
-
-  const sort = $('#sortSelect').value;
-  const n = v => (parseFloat((v||'').replace(/[^0-9.]/g,''))||0);
-  const cmp = {
-    'name-asc': (a,b)=>(a.name||'').localeCompare(b.name||''),
-    'name-desc':(a,b)=>(b.name||'').localeCompare(a.name||''),
-    'date-asc': (a,b)=> a._next - b._next,
-    'date-desc':(a,b)=> b._next - a._next,
-    'plan-asc': (a,b)=> n(a.plan) - n(b.plan),
-    'plan-desc':(a,b)=> n(b.plan) - n(a.plan),
-  }[sort] || ((a,b)=>0);
-  list.sort(cmp);
-
-  let countThis=0, countLater=0;
-  list.forEach(c=>{
-    const nextStr = formatDate(c._next);
-    const dueToday = isToday(c._next);
-    const inThisMonth = isThisMonth(c._next);
-    const overdue = isOverdue(new Date(c._next.getTime()-86400000));
-
-    const card = document.createElement('div');
-    card.className = 'client';
-    if (c.justPaid) card.classList.add('paid');
-    if (dueToday) card.classList.add('today');
-    if (overdue) card.classList.add('overdue');
-
-    const details = `
-      <details>
-        <summary class="muted">More info</summary>
-        <div class="row" style="margin-top:8px; grid-template-columns: 1fr 1fr;">
-          <label class="label">Email</label><input class="inp email" data-i="${c._index}" type="email" value="${escapeAttr(c.email||'')}"/>
-          <label class="label">Phone</label><input class="inp phone" data-i="${c._index}" type="text" value="${escapeAttr(c.phone||'')}"/>
-          <label class="label">Address</label><input class="inp addr" data-i="${c._index}" type="text" value="${escapeAttr(c.address||'')}"/>
-          <label class="label">Notes</label><textarea class="inp notes" data-i="${c._index}">${escapeHtml(c.notes||'')}</textarea>
-        </div>
-      </details>`;
-
-    card.innerHTML = `
-      <div class="info">
-        <div><div class="label">Name</div><div class="value">${escapeHtml(c.name||'')}</div></div>
-        <div><div class="label">Plan</div><div><input class="inp plan" data-i="${c._index}" type="text" value="${escapeAttr(c.plan||'')}" /></div></div>
-        <div><div class="label">Start Date</div><div><input class="inp date" data-i="${c._index}" type="date" value="${escapeAttr(c.startDate||'')}" /></div></div>
-        <div><div class="label">Next Payment</div><div class="value">${dueToday?'🟧 Today':nextStr}</div></div>
-      </div>
-      <div class="actions" style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn success paid" data-i="${c._index}">✅ Mark Paid</button>
-        <button class="btn" data-action="email" data-i="${c._index}">✉️ Email</button>
-        <button class="btn danger del" data-i="${c._index}">🗑️ Delete</button>
-      </div>
-      ${details}
-    `;
-    if(inThisMonth){ dueWrap.appendChild(card); countThis++; } else { paidWrap.appendChild(card); countLater++; }
-  });
-  $('#countThisMonth').textContent = countThis;
-  $('#countLater').textContent = countLater;
-
-  // Bind actions
-  $$('.btn.success.paid').forEach(b=>b.addEventListener('click', onMarkPaid));
-  $$('.btn.danger.del').forEach(b=>b.addEventListener('click', onDelete));
-  $$('.inp.date').forEach(i=>i.addEventListener('change', onEditDate));
-$$('.inp.plan').forEach(i=>i.addEventListener('blur', onEditPlan));
-$$('.inp.email').forEach(i=>i.addEventListener('blur', onEditEmail));
-$$('.inp.phone').forEach(i=>i.addEventListener('blur', onEditPhone));
-$$('.inp.addr').forEach(i=>i.addEventListener('blur', onEditAddr));
-$$('.inp.notes').forEach(i=>i.addEventListener('blur', onEditNotes));
-  $$('button[data-action="email"]').forEach(b=>b.addEventListener('click', onEmail));
-}
-
-/* ======== Client item handlers (Firestore updates) ======== */
-async function onMarkPaid(e){
-  const i = +e.currentTarget.dataset.i;
-  const item = getClients()[i]; if(!item) return;
-  if(!confirm('Mark as paid and move next payment by 1 month?')) return;
-  const d = new Date(item.startDate); d.setMonth(d.getMonth()+1);
-  await updateClient(item.id, { startDate: formatDate(d) });
-}
-
-async function onDelete(e) {
-  const i = +e.currentTarget.dataset.i;
-  const item = getClients()[i]; if(!item) return;
-  if (!confirm(`Are you sure you want to delete ${item.name || 'this client'}? This action cannot be undone.`)) return;
-  await deleteClient(item.id);
-}
-async function onEditDate(e){
-  const i = +e.currentTarget.dataset.i;
-  const item = getClients()[i]; if(!item) return;
-  await updateClient(item.id, { startDate: e.currentTarget.value });
-}
-async function onEditPlan(e){
-  const i = +e.currentTarget.dataset.i;
-  const item = getClients()[i]; if(!item) return;
-  await updateClient(item.id, { plan: e.currentTarget.value });
-}
-async function onEditEmail(e){
-  const i = +e.currentTarget.dataset.i;
-  const item = getClients()[i]; if(!item) return;
-  await updateClient(item.id, { email: e.currentTarget.value });
-}
-async function onEditPhone(e){
-  const i = +e.currentTarget.dataset.i;
-  const item = getClients()[i]; if(!item) return;
-  await updateClient(item.id, { phone: e.currentTarget.value });
-}
-async function onEditAddr(e){
-  const i = +e.currentTarget.dataset.i;
-  const item = getClients()[i]; if(!item) return;
-  await updateClient(item.id, { address: e.currentTarget.value });
-}
-async function onEditNotes(e){
-  const i = +e.currentTarget.dataset.i;
-  const item = getClients()[i]; if(!item) return;
-  await updateClient(item.id, { notes: e.currentTarget.value });
-}
-
-function onEmail(e){
-  const i = +e.currentTarget.dataset.i;
-  const c = getClients()[i]; if(!c) return;
-  const next = formatDate(nextPaymentFrom(new Date(c.startDate)));
-  const p = currentProfile?.prefs || {};
-  const subject = encodeURIComponent((p.tplSubject || 'Payment Reminder for {{name}}')
-    .replace(/{{name}}/g, c.name||'').replace(/{{next}}/g, next).replace(/{{plan}}/g, c.plan||''));
-  const body = encodeURIComponent((p.tplBody || 'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.')
-    .replace(/{{name}}/g, c.name||'').replace(/{{next}}/g, next).replace(/{{plan}}/g, c.plan||''));
-  const to = encodeURIComponent(c.email || '');
-  const footer = `%0D%0A%0D%0ASent from: ${encodeURIComponent(currentUser?.email||'')}`;
-  location.href = `mailto:${to}?subject=${subject}&body=${body}${footer}`;
-}
-
-/* ======== Export / Backup / Restore / Prefs ======== */
-function exportToExcel(){
-  const list = getClients().map(c=>({ ...c, _next: nextPaymentFrom(new Date(c.startDate)) }));
-  const order = { 'Due Today':0, 'Due This Month':1, 'Paid for Next Month':2 };
-  list.sort((a,b)=> (order[statusFor(a)] - order[statusFor(b)]) || (a._next - b._next));
-  const data = list.map(c=>({
-    "Client Name": c.name, "Email": c.email || '', "Phone": c.phone || '',
-    "Address": c.address || '', "Plan": c.plan || '', "Start Date": c.startDate,
-    "Next Payment": formatDate(c._next), "Status": statusFor(c), "Notes": c.notes || ''
-  }));
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Clients");
-  XLSX.writeFile(wb, `${(currentProfile?.username)||'user'}_Clients.xlsx`);
-}
-function download(filename, text){
-  const blob = new Blob([text], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
-  URL.revokeObjectURL(url);
-}
-function backupUser(){
-  const payload = { username: currentProfile?.username || '', clients: getClients() };
-  download(`${(currentProfile?.username)||'user'}_backup.json`, JSON.stringify(payload,null,2));
-}
-async function restoreUser(file) {
-  if (!currentUser) return;
-  const reader = new FileReader();
-  reader.onload = async () => {
-    try {
-      const obj = JSON.parse(reader.result);
-      if (!obj || !Array.isArray(obj.clients)) throw new Error('Invalid file');
-
-      const colRef = db.collection('users').doc(currentUser.uid).collection('clients');
-      const batch = db.batch();
-
-      // Delete existing clients
-      const existing = await colRef.get();
-      existing.forEach(doc => batch.delete(doc.ref));
-
-      // Add imported clients
-      obj.clients.forEach(c => {
-        const copy = { ...c };
-        delete copy.id;
-        delete copy._index;
-        delete copy._next;
-        delete copy.justPaid;
-        const newDocRef = colRef.doc(); // generate new doc id
-        batch.set(newDocRef, copy);
+      // Subscribe to clients
+      if(unsubClients) unsubClients();
+      const qClients = query(collection(db, 'users', user.uid, 'clients'), orderBy('name'));
+      unsubClients = onSnapshot(qClients, (snap)=>{
+        clientsCache = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+        render();
       });
 
-      // Commit all changes in one request
-      await batch.commit();
+      $('#loginView').classList.add('hide');
+      $('#appView').classList.remove('hide');
+    });
 
-      alert('Restore complete!');
-    } catch (e) {
-      console.error(e);
-      alert('Could not restore — invalid file.');
+    // ===================== Firestore CRUD =====================
+    function getClients(){ return clientsCache || []; }
+    function statusFor(c){
+      const next = nextPaymentFrom(new Date(c.startDate));
+      if (isToday(next)) return 'Due Today';
+      if (isThisMonth(next)) return 'Due This Month';
+      return 'Paid for Next Month';
     }
-  };
-  reader.readAsText(file);
-}
 
-async function toggleDark(){
-  const current = !!(currentProfile?.prefs?.darkMode);
-  await savePrefs({ darkMode: !current });
-  setTheme(!current);
-}
+    async function addClient(c){
+      if(!currentUser) return;
+      await addDoc(collection(db, 'users', currentUser.uid, 'clients'), c);
+    }
+    async function updateClient(id, patch){
+      if(!currentUser || !id) return;
+      await updateDoc(doc(db, 'users', currentUser.uid, 'clients', id), patch);
+    }
+    async function deleteClient(id){
+      if(!currentUser || !id) return;
+      await deleteDoc(doc(db, 'users', currentUser.uid, 'clients', id));
+    }
+    async function savePrefs(patch){
+      if(!currentUser) return;
+      const next = { ...(currentProfile||{}), prefs: { ...(currentProfile?.prefs||{}), ...patch } };
+      await updateDoc(doc(db, 'users', currentUser.uid), { prefs: next.prefs });
+      currentProfile = next;
+    }
 
-async function saveTplClick(){
-  const subj = $('#tplSubject').value;
-  const body = $('#tplBody').value;
-  await savePrefs({ tplSubject: subj, tplBody: body });
-  alert('Template saved!');
-}
+    // ===================== Render =====================
+    function render(){
+      const dueWrap = $('#dueList'), paidWrap = $('#paidList');
+      dueWrap.innerHTML=''; paidWrap.innerHTML='';
 
-/* ======== Forgot Password (via username -> email) ======== */
-async function openForgot(){
-  const username = prompt('Enter your username to send a reset email:');
-  if(!username) return;
-  try{
-    const key = username.toLowerCase();
-    const doc = await db.collection('usernames').doc(key).get();
-    if(!doc.exists){ alert('No such username.'); return; }
-    const { email } = doc.data();
-    await auth.sendPasswordResetEmail(email);
-    alert(`Password reset email sent to ${email}`);
-  }catch(e){ console.error(e); alert('Could not send reset email.'); }
-}
+      let list = getClients().map((c,i)=>({ ...c, _index:i, _next: nextPaymentFrom(new Date(c.startDate)) }));
 
-/* ======== UI Wiring ======== */
-document.getElementById('createAccountBtn').addEventListener('click', ()=> {
-  document.getElementById('registerModal').classList.add('open');
-});
-function closeModal(){ document.getElementById('registerModal').classList.remove('open'); }
+      const qstr = $('#searchInput').value.trim().toLowerCase();
+      if(qstr) list = list.filter(c => (c.name||'').toLowerCase().includes(qstr));
 
-$('#registerForm').addEventListener('submit', async e=>{
-  e.preventDefault();
-  await register($('#regUsername').value, $('#regEmail').value, $('#regPassword').value, $('#regQ').value, $('#regA').value);
-  e.target.reset();
-});
-$('#loginForm').addEventListener('submit', async e=>{
-  e.preventDefault();
-  await login($('#loginUsername').value, $('#loginPassword').value);
-});
-$('#forgotBtn').addEventListener('click', openForgot);
+      const filt = $('#filterSelect').value;
+      if(filt==='due-month') list = list.filter(c => isThisMonth(c._next));
+      if(filt==='overdue') list = list.filter(c => isOverdue(c._next));
+      if(filt==='upcoming') list = list.filter(c => !isThisMonth(c._next) && !isOverdue(c._next));
 
-$('#moreBtn').addEventListener('click', ()=> $('#moreMenu').classList.toggle('open'));
-document.addEventListener('click', e=>{ if(!e.target.closest('.menu-wrap')) $('#moreMenu').classList.remove('open'); });
-$('#exportExcel').addEventListener('click', exportToExcel);
-$('#backupBtn').addEventListener('click', backupUser);
-$('#restoreInput').addEventListener('change', e=>{ if(e.target.files?.[0]) restoreUser(e.target.files[0]); e.target.value=''; $('#moreMenu').classList.remove('open'); });
-$('#darkToggle').addEventListener('click', toggleDark);
-$('#logoutBtn').addEventListener('click', logout);
+      const sort = $('#sortSelect').value;
+      const n = v => (parseFloat((v||'').replace(/[^0-9.]/g,''))||0);
+      const cmp = {
+        'name-asc': (a,b)=>(a.name||'').localeCompare(b.name||''),
+        'name-desc':(a,b)=>(b.name||'').localeCompare(a.name||''),
+        'date-asc': (a,b)=> a._next - b._next,
+        'date-desc':(a,b)=> b._next - a._next,
+        'plan-asc': (a,b)=> n(a.plan) - n(b.plan),
+        'plan-desc':(a,b)=> n(b.plan) - n(a.plan),
+      }[sort] || ((a,b)=>0);
+      list.sort(cmp);
 
-let searchTimeout;
-$('#searchInput').addEventListener('input', function() {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => { render(); }, 500);
-});
-$('#filterSelect').addEventListener('change', render);
-$('#sortSelect').addEventListener('change', render);
+      let countThis=0, countLater=0;
+      list.forEach(c=>{
+        const nextStr = formatDate(c._next);
+        const dueToday = isToday(c._next);
+        const inThisMonth = isThisMonth(c._next);
+        const overdue = isOverdue(new Date(c._next.getTime()-86400000));
 
-$('#clientForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const name = $('#clientName').value.trim();
-  const email = $('#clientEmail').value.trim();
-  const phone = $('#clientPhone').value.trim();
-  const address = $('#clientAddress').value.trim();
-  const startDate = $('#startDate').value;
-  const plan = $('#clientPlan').value.trim();
-  if (!name || !startDate) return;
+        const card = document.createElement('div');
+        card.className = 'client';
+        if (c.justPaid) card.classList.add('paid');
+        if (dueToday) card.classList.add('today');
+        if (overdue) card.classList.add('overdue');
 
-  // No duplicates check across devices here; Firestore rules or extra query can enforce if you want strict uniqueness.
-  await addClient({ name, email, phone, address, startDate, plan, notes: '' });
-  e.target.reset();
-});
+        // dataset index for delegation
+        card.dataset.i = String(c._index);
 
-$('#saveTpl').addEventListener('click', saveTplClick);
+        const details = `
+          <details>
+            <summary class="muted">More info</summary>
+            <div class="row" style="margin-top:8px; grid-template-columns: 1fr 1fr;">
+              <label class="label">Email</label><input class="inp email" data-i="${c._index}" type="email" value="${escapeAttr(c.email||'')}"/>
+              <label class="label">Phone</label><input class="inp phone" data-i="${c._index}" type="text" value="${escapeAttr(c.phone||'')}"/>
+              <label class="label">Address</label><input class="inp addr" data-i="${c._index}" type="text" value="${escapeAttr(c.address||'')}"/>
+              <label class="label">Notes</label><textarea class="inp notes" data-i="${c._index}">${escapeHtml(c.notes||'')}</textarea>
+            </div>
+          </details>`;
 
-/* ======== Simple dialog helpers (kept) ======== */
-function showDialog(title, bodyNode, onOk, okLabel='OK', cancelLabel='Cancel'){
-  $('#dialogTitle').textContent = title;
-  const body = $('#dialogBody'); body.innerHTML=''; if(bodyNode) body.appendChild(bodyNode);
-  $('#dialogBackdrop').classList.add('open');
-  $('#dialogOk').textContent = okLabel; $('#dialogCancel').textContent = cancelLabel;
-  const okHandler = async ()=>{ if(typeof onOk === 'function'){ const res = await onOk(); if(res === false) return; } closeDialog(); };
-  $('#dialogOk').onclick = okHandler;
-  $('#dialogCancel').onclick = closeDialog;
-}
-function closeDialog(){ $('#dialogBackdrop').classList.remove('open'); }
-</script>
+        card.innerHTML = `
+          <div class="info">
+            <div><div class="label">Name</div><div class="value">${escapeHtml(c.name||'')}</div></div>
+            <div><div class="label">Plan</div><div><input class="inp plan" data-i="${c._index}" type="text" value="${escapeAttr(c.plan||'')}" /></div></div>
+            <div><div class="label">Start Date</div><div><input class="inp date" data-i="${c._index}" type="date" value="${escapeAttr(c.startDate||'')}" /></div></div>
+            <div><div class="label">Next Payment</div><div class="value">${dueToday?'🟧 Today':nextStr}</div></div>
+          </div>
+          <div class="actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn success" data-action="paid" data-i="${c._index}">✅ Mark Paid</button>
+            <button class="btn" data-action="email" data-i="${c._index}">✉️ Email</button>
+            <button class="btn danger" data-action="del" data-i="${c._index}">🗑️ Delete</button>
+          </div>
+          ${details}
+        `;
+        if(inThisMonth){ dueWrap.appendChild(card); countThis++; } else { paidWrap.appendChild(card); countLater++; }
+      });
+      $('#countThisMonth').textContent = countThis;
+      $('#countLater').textContent = countLater;
+    }
+
+    // ===================== Handlers (Event Delegation) =====================
+    async function onMarkPaid(i){
+      const item = getClients()[i]; if(!item) return;
+      if(!confirm('Mark as paid and move next payment by 1 month?')) return;
+      const d = new Date(item.startDate); d.setMonth(d.getMonth()+1);
+      await updateClient(item.id, { startDate: formatDate(d) });
+    }
+    async function onDelete(i){
+      const item = getClients()[i]; if(!item) return;
+      if (!confirm(`Delete ${item.name || 'this client'}? This cannot be undone.`)) return;
+      await deleteClient(item.id);
+    }
+    async function onEdit(i, field, value){
+      const item = getClients()[i]; if(!item) return;
+      await updateClient(item.id, { [field]: value });
+    }
+    function onEmail(i){
+      const c = getClients()[i]; if(!c) return;
+      const next = formatDate(nextPaymentFrom(new Date(c.startDate)));
+      const p = currentProfile?.prefs || {};
+      const subject = encodeURIComponent((p.tplSubject || 'Payment Reminder for {{name}}')
+        .replace(/{{name}}/g, c.name||'').replace(/{{next}}/g, next).replace(/{{plan}}/g, c.plan||''));
+      const body = encodeURIComponent((p.tplBody || 'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.')
+        .replace(/{{name}}/g, c.name||'').replace(/{{next}}/g, next).replace(/{{plan}}/g, c.plan||''));
+      const to = encodeURIComponent(c.email || '');
+      const footer = `%0D%0A%0D%0ASent from: ${encodeURIComponent(auth.currentUser?.email||'')}`;
+      location.href = `mailto:${to}?subject=${subject}&body=${body}${footer}`;
+    }
+
+    function exportToExcel(){
+      const list = getClients().map(c=>({ ...c, _next: nextPaymentFrom(new Date(c.startDate)) }));
+      const order = { 'Due Today':0, 'Due This Month':1, 'Paid for Next Month':2 };
+      list.sort((a,b)=> (order[statusFor(a)] - order[statusFor(b)]) || (a._next - b._next));
+      const data = list.map(c=>({
+        "Client Name": c.name, "Email": c.email || '', "Phone": c.phone || '',
+        "Address": c.address || '', "Plan": c.plan || '', "Start Date": c.startDate,
+        "Next Payment": formatDate(c._next), "Status": statusFor(c), "Notes": c.notes || ''
+      }));
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Clients");
+      XLSX.writeFile(wb, `${(currentProfile?.username)||'user'}_Clients.xlsx`);
+    }
+    function download(filename, text){
+      const blob = new Blob([text], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
+      URL.revokeObjectURL(url);
+    }
+    function backupUser(){
+      const payload = { username: currentProfile?.username || '', clients: getClients() };
+      download(`${(currentProfile?.username)||'user'}_backup.json`, JSON.stringify(payload,null,2));
+    }
+    async function restoreUser(file) {
+      if (!currentUser) return;
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const obj = JSON.parse(reader.result);
+          if (!obj || !Array.isArray(obj.clients)) throw new Error('Invalid file');
+
+          const colRefPath = ['users', currentUser.uid, 'clients'];
+          const batch = writeBatch(db);
+
+          // Delete existing clients
+          // Note: For large collections, consider paginating/deleting server-side.
+          // Here we rely on cache snapshot to know ids:
+          clientsCache.forEach(c => batch.delete(doc(db, ...colRefPath, c.id)));
+
+          // Add imported clients
+          obj.clients.forEach(c => {
+            const copy = { ...c };
+            delete copy.id; delete copy._index; delete copy._next; delete copy.justPaid;
+            const newRef = doc(collection(db, ...colRefPath));
+            batch.set(newRef, copy);
+          });
+
+          await batch.commit();
+          alert('Restore complete!');
+        } catch (e) {
+          console.error(e);
+          alert('Could not restore — invalid file.');
+        }
+      };
+      reader.readAsText(file);
+    }
+    async function toggleDark(){
+      const current = !!(currentProfile?.prefs?.darkMode);
+      await savePrefs({ darkMode: !current });
+      setTheme(!current);
+    }
+    async function saveTplClick(){
+      const subj = $('#tplSubject').value;
+      const body = $('#tplBody').value;
+      await savePrefs({ tplSubject: subj, tplBody: body });
+      alert('Template saved!');
+    }
+
+    // ===================== Simple dialog helpers (kept) =====================
+    function showDialog(title, bodyNode, onOk, okLabel='OK', cancelLabel='Cancel'){
+      $('#dialogTitle').textContent = title;
+      const body = $('#dialogBody'); body.innerHTML=''; if(bodyNode) body.appendChild(bodyNode);
+      $('#dialogBackdrop').classList.add('open');
+      $('#dialogOk').textContent = okLabel; $('#dialogCancel').textContent = cancelLabel;
+      const okHandler = async ()=>{ if(typeof onOk === 'function'){ const res = await onOk(); if(res === false) return; } closeDialog(); };
+      $('#dialogOk').onclick = okHandler;
+      $('#dialogCancel').onclick = closeDialog;
+    }
+    function closeDialog(){ $('#dialogBackdrop').classList.remove('open'); }
+
+    // ===================== UI Wiring =====================
+    // Open/close helpers for modals
+    function openModal(sel){ const el = document.querySelector(sel); if (el) el.classList.add('open'); }
+    function closeModal(sel){ const el = document.querySelector(sel); if (el) el.classList.remove('open'); }
+    window.closeModal = closeModal; // used by register close button (data attribute below)
+
+    // Login + Register
+    $('#createAccountBtn').addEventListener('click', ()=> openModal('#registerModal'));
+    document.addEventListener('click', (e)=>{
+      const btn = e.target.closest('[data-close-modal]');
+      if (btn){ closeModal(btn.getAttribute('data-close-modal')); }
+    });
+
+    $('#registerForm').addEventListener('submit', async e=>{
+      e.preventDefault();
+      await register($('#regUsername').value, $('#regEmail').value, $('#regPassword').value, $('#regQ').value, $('#regA').value);
+      e.target.reset();
+    });
+    $('#loginForm').addEventListener('submit', async e=>{
+      e.preventDefault();
+      await login($('#loginUsername').value, $('#loginPassword').value);
+    });
+
+    // Forgot password flow (modal)
+    $('#forgotBtn').addEventListener('click', ()=> openModal('#forgotModal'));
+    $('#forgotSend').addEventListener('click', async ()=>{
+      const username = $('#forgotUsername').value.trim();
+      if(!username) return alert('Please enter your username.');
+      try{
+        const key = username.toLowerCase();
+        const docSnap = await getDoc(doc(db, 'usernames', key));
+        if(!docSnap.exists()){ alert('No such username.'); return; }
+        const { email } = docSnap.data();
+        await sendPasswordResetEmail(auth, email);
+        alert(`Password reset email sent to ${email}`);
+        closeModal('#forgotModal');
+      }catch(e){ console.error(e); alert('Could not send reset email.'); }
+    });
+
+    // Menu & misc
+    $('#moreBtn').addEventListener('click', ()=>{
+      const menu = $('#moreMenu');
+      const isOpen = menu.classList.toggle('open');
+      $('#moreBtn').setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      menu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+    });
+    document.addEventListener('click', e=>{ if(!e.target.closest('.menu-wrap')) $('#moreMenu').classList.remove('open'); });
+    $('#exportExcel').addEventListener('click', exportToExcel);
+    $('#backupBtn').addEventListener('click', backupUser);
+    $('#restoreInput').addEventListener('change', e=>{ if(e.target.files?.[0]) restoreUser(e.target.files[0]); e.target.value=''; $('#moreMenu').classList.remove('open'); });
+    $('#darkToggle').addEventListener('click', toggleDark);
+    $('#logoutBtn').addEventListener('click', logout);
+
+    // Filters & search (debounced)
+    let searchTimeout;
+    $('#searchInput').addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => { render(); }, 300);
+    });
+    $('#filterSelect').addEventListener('change', render);
+    $('#sortSelect').addEventListener('change', render);
+
+    // Add client
+    $('#clientForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const name = $('#clientName').value.trim();
+      const email = $('#clientEmail').value.trim();
+      const phone = $('#clientPhone').value.trim();
+      const address = $('#clientAddress').value.trim();
+      const startDate = $('#startDate').value;
+      const plan = $('#clientPlan').value.trim();
+      if (!name || !startDate) return;
+      await addClient({ name, email, phone, address, startDate, plan, notes: '' });
+      e.target.reset();
+    });
+
+    // Event delegation for lists (clicks)
+    document.addEventListener('click', async (e)=>{
+      // actions on client cards
+      const actionBtn = e.target.closest('.client .actions .btn');
+      if (actionBtn){
+        const i = +actionBtn.dataset.i;
+        const action = actionBtn.dataset.action;
+        if (action === 'paid') return onMarkPaid(i);
+        if (action === 'del') return onDelete(i);
+        if (action === 'email') return onEmail(i);
+      }
+    });
+
+    // Event delegation for inputs (blur/change)
+    document.addEventListener('change', async (e)=>{
+      const inp = e.target;
+      if (inp.matches('.inp.date')){
+        const i = +inp.dataset.i;
+        await onEdit(i, 'startDate', inp.value);
+      }
+    });
+    document.addEventListener('blur', async (e)=>{
+      const inp = e.target;
+      if (!(inp instanceof HTMLElement)) return;
+      if (inp.matches('.inp.plan')) { const i = +inp.dataset.i; await onEdit(i, 'plan', inp.value); }
+      if (inp.matches('.inp.email')){ const i = +inp.dataset.i; await onEdit(i, 'email', inp.value); }
+      if (inp.matches('.inp.phone')){ const i = +inp.dataset.i; await onEdit(i, 'phone', inp.value); }
+      if (inp.matches('.inp.addr')) { const i = +inp.dataset.i; await onEdit(i, 'address', inp.value); }
+      if (inp.matches('.inp.notes')){ const i = +inp.dataset.i; await onEdit(i, 'notes', inp.value); }
+    }, true);
+
+    // Save template
+    $('#saveTpl').addEventListener('click', saveTplClick);
+
+    // ===================== IMPORTANT: Firestore Rules =====================
+    /*
+    In your Firebase console > Firestore Rules, ensure at minimum:
+
+    rules_version = '2';
+    service cloud.firestore {
+      match /databases/{database}/documents {
+        match /users/{userId} {
+          allow read, update: if request.auth != null && request.auth.uid == userId;
+          allow create: if request.auth != null && request.auth.uid == userId;
+          match /clients/{clientId} {
+            allow read, write: if request.auth != null && request.auth.uid == userId;
+          }
+        }
+        match /usernames/{username} {
+          // Reads allowed to look up emails by username for login/reset
+          allow read: if true;
+          // Writes only allowed when the auth.uid matches the uid being written (checked by security if you add it)
+          allow create, update, delete: if request.auth != null;
+        }
+      }
+    }
+    */
+  </script>
 </body>
 </html>
