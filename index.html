@@ -645,32 +645,44 @@ function backupUser(){
   const payload = { username: currentProfile?.username || '', clients: getClients() };
   download(`${(currentProfile?.username)||'user'}_backup.json`, JSON.stringify(payload,null,2));
 }
-function restoreUser(file){
-  if(!currentUser) return;
+async function restoreUser(file) {
+  if (!currentUser) return;
   const reader = new FileReader();
-  reader.onload = async ()=>{
-    try{
+  reader.onload = async () => {
+    try {
       const obj = JSON.parse(reader.result);
-      if(!obj || !Array.isArray(obj.clients)) throw new Error('Invalid file');
-      // Optional: clear existing clients first
+      if (!obj || !Array.isArray(obj.clients)) throw new Error('Invalid file');
+
+      const colRef = db.collection('users').doc(currentUser.uid).collection('clients');
       const batch = db.batch();
-      const col = db.collection('users').doc(currentUser.uid).collection('clients');
-      // Delete existing
-      const existing = await col.get();
-      existing.forEach(doc=> batch.delete(doc.ref));
+
+      // Delete existing clients
+      const existing = await colRef.get();
+      existing.forEach(doc => batch.delete(doc.ref));
+
+      // Add imported clients
+      obj.clients.forEach(c => {
+        const copy = { ...c };
+        delete copy.id;
+        delete copy._index;
+        delete copy._next;
+        delete copy.justPaid;
+        const newDocRef = colRef.doc(); // generate new doc id
+        batch.set(newDocRef, copy);
+      });
+
+      // Commit all changes in one request
       await batch.commit();
 
-      // Add imported
-      for (const c of obj.clients) {
-        const copy = { ...c };
-        delete copy.id; delete copy._index; delete copy._next; delete copy.justPaid;
-        await col.add(copy);
-      }
       alert('Restore complete!');
-    } catch(e){ console.error(e); alert('Could not restore — invalid file.'); }
+    } catch (e) {
+      console.error(e);
+      alert('Could not restore — invalid file.');
+    }
   };
   reader.readAsText(file);
 }
+
 async function toggleDark(){
   const current = !!(currentProfile?.prefs?.darkMode);
   await savePrefs({ darkMode: !current });
