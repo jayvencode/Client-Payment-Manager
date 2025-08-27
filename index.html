@@ -585,18 +585,52 @@
       const key = `${item.id}:${field}`;
       debounceKey(key, () => updateClient(item.id, { [field]: value }), 450);
     }
-    function onEmail(i){
-      const c = getClients()[i]; if(!c) return;
-      const next = formatDate(nextPaymentFrom(new Date(c.startDate)));
-      const p = currentProfile?.prefs || {};
-      const subject = encodeURIComponent((p.tplSubject || 'Payment Reminder for {{name}}')
-        .replace(/{{name}}/g, c.name||'').replace(/{{next}}/g, next).replace(/{{plan}}/g, c.plan||''));
-      const body = encodeURIComponent((p.tplBody || 'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.')
-        .replace(/{{name}}/g, c.name||'').replace(/{{next}}/g, next).replace(/{{plan}}/g, c.plan||''));
-      const to = encodeURIComponent(c.email || '');
-      const footer = `%0D%0A%0D%0ASent from: ${encodeURIComponent(auth.currentUser?.email||'')}`;
-      location.href = `mailto:${to}?subject=${subject}&body=${body}${footer}`;
-    }
+  function onEmail(i){
+  console.log('[onEmail] clicked index=', i);
+  const c = getClients()[i];
+  console.log('[onEmail] client:', c);
+  if (!c) {
+    // unexpected — provide feedback
+    showDialog('Error', document.createTextNode('Client not found.'));
+    return;
+  }
+
+  // If no email -> show popup and stop
+  if (!c.email || String(c.email).trim() === '') {
+    // use your app dialog (nicer) so it looks consistent with the UI
+    showDialog('No email', document.createTextNode('No email added for this client.'));
+    return;
+  }
+
+  const next = formatDate(nextPaymentFrom(new Date(c.startDate)));
+  const p = currentProfile?.prefs || {};
+
+  const subject = encodeURIComponent((p.tplSubject || 'Payment Reminder for {{name}}')
+    .replace(/{{name}}/g, c.name||'')
+    .replace(/{{next}}/g, next)
+    .replace(/{{plan}}/g, c.plan||''));
+
+  const body = encodeURIComponent((p.tplBody || 'Hello {{name}},\n\nYour next payment is due on {{next}} for {{plan}}.\n\nThank you.')
+    .replace(/{{name}}/g, c.name||'')
+    .replace(/{{next}}/g, next)
+    .replace(/{{plan}}/g, c.plan||''));
+
+  const to = encodeURIComponent(c.email);
+  const footer = `%0D%0A%0D%0ASent from: ${encodeURIComponent(auth.currentUser?.email||'')}`;
+
+  // Detect if running on mobile
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    // Mobile → open default mail app
+    location.href = `mailto:${to}?subject=${subject}&body=${body}${footer}`;
+  } else {
+    // Desktop → force Gmail web
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}${footer}`;
+    window.open(gmailUrl, "_blank");
+  }
+}
+
 
     function exportToExcel(){
       const list = getClients().map(c=>({ ...c, _next: nextPaymentFrom(new Date(c.startDate)) }));
